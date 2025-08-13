@@ -1,0 +1,25 @@
+<div class="app-container">
+
+    <!-- Header Component -->
+    <app-navbar (menuToggle)="toggleSidebar()"></app-navbar>
+
+    <!-- Main Content Area with Sidebar -->
+    <mat-sidenav-container class="app-sidenav-container">
+
+        <!-- Sidebar Component -->
+        <mat-sidenav #sidenav mode="over" class="app-sidenav" [opened]="sidebarOpen" (closed)="sidebarOpen = false">
+            <app-sidenav (navigationClick)="onNavigation($event)"></app-sidenav>
+        </mat-sidenav>
+
+        <!-- Main Content -->
+        <mat-sidenav-content class="app-content">
+            <div class="content-wrapper">
+                <router-outlet></router-outlet>
+            </div>
+        </mat-sidenav-content>
+    </mat-sidenav-container>
+
+    <!-- Footer Component -->
+    <app-footer></app-footer>
+
+</div>

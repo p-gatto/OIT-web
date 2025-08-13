@@ -1,0 +1,56 @@
+.app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.app-sidenav-container {
+    flex: 1;
+    display: flex;
+}
+
+.app-sidenav {
+    width: 300px;
+    box-shadow: 2px 0 4px rgba(0,0,0,0.1);
+}
+
+.app-content {
+    display: flex;
+    flex-direction: column;
+    min-width: 100%;
+}
+
+.content-wrapper {
+    flex: 1;
+    padding: 2rem;
+    overflow-y: auto;
+    min-width: 100%;
+}
+
+.welcome-content {
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.welcome-content h1 {
+    color: #333;
+    margin-bottom: 1rem;
+}
+
+.welcome-content ul {
+    text-align: left;
+    max-width: 500px;
+    margin: 2rem auto;
+}
+
+.welcome-content li {
+    margin-bottom: 0.8rem;
+}
+
+@media (max-width: 768px) {
+    .app-sidenav {
+        width: 100%;
+    }
+
+}

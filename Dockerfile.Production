@@ -1,0 +1,39 @@
+### STAGE 1: Build dell'applicazione Angular
+FROM node:alpine AS build
+
+WORKDIR /usr/src/app
+
+COPY . /usr/src/app
+
+RUN npm install
+
+# Add the following lines to copy the certificates
+RUN mkdir -p /usr/src/app/ssl
+
+RUN apk add curl
+
+# Esegui la build di produzione di Angular
+# --configuration production è cruciale per ottimizzare l'applicazione
+RUN npm run build-production
+
+
+### STAGE 2: Serve l'applicazione con Nginx
+# Usiamo un'immagine Nginx leggera per servire i file statici
+FROM nginx:alpine
+
+# Rimuovi la configurazione di default di Nginx
+RUN rm /etc/nginx/conf.d/default.conf
+
+# Copia i file di build di Angular nella directory di Nginx
+# Il percorso dipende dalla tua configurazione Angular, solitamente dist/<nome-progetto>
+COPY --from=build /usr/src/app/dist/oit.web/browser /usr/share/nginx/html
+
+# Copia la configurazione personalizzata di Nginx
+# Questo file verrà creato tra poco
+COPY ./nginx/default.conf /etc/nginx/conf.d/default.conf
+
+# Espone la porta 80 all'interno del container.
+# Nginx ascolterà qui e il reverse proxy esterno si collegherà a questa porta.
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

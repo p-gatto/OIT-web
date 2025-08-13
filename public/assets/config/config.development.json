@@ -1,0 +1,11 @@
+{
+  "managementsApiBaseUrl": "https://localhost:7070/managements-service",
+  "credentialsApiBaseUrl": "https://localhost:7070/credentials-service",
+  "reportsApiBaseUrl": "https://localhost:7070/reports-service",
+  "appName": "La Mia App Angular19 - Development Env",
+  "features": {
+    "darkMode": true,
+    "notifications": true
+  },
+  "version": "1.0.1"
+}

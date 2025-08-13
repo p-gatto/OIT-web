@@ -1,0 +1,11 @@
+<div *ngIf="loaded()">
+    <h1>{{ appName() }}</h1>
+    <p>MANAGEMENT API URL: {{ managementsApiBaseUrl() }}</p>
+    <br>
+    <br>
+    <p>CREDENTIALS API URL: {{ credentialsApiBaseUrl() }}</p>
+    <br>
+    <br>
+    <p>REPORTS API URL: {{ reportsApiBaseUrl() }}</p>
+</div>
+<div *ngIf="!loaded()">Caricamento configurazione...</div>
