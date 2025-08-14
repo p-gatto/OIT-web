@@ -6,7 +6,7 @@ export interface Credential {
     password: string;
     email: string;
     url: string;
-    profilo: string;
+    profile: string;
     subject_ID: string;
     nickname: string;
     operativity: string;
@@ -36,7 +36,7 @@ export interface Credential {
     frase_Identificativa: string;
     machine_IP: string;
     machine_Name: string;
-    Machine_Type: string;
+    machine_Type: string;
     numero_Cliente: string;
     note: string;
     expired_Date: Date;

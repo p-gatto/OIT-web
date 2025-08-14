@@ -13,6 +13,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { CredentialFilterDto } from './dtos/credential-filter-dto.model';
 import { CredentialsService } from './credentials.service';
@@ -41,6 +42,7 @@ export class CredentialsComponent implements OnInit {
 
   credentialsService = inject(CredentialsService);
   dialog = inject(MatDialog);
+  snackBar = inject(MatSnackBar);
 
   dataSource = new MatTableDataSource<Credential>([]);
   displayedColumns: string[] = ['name', 'username', 'email', 'url', 'active', 'expired', 'actions'];
@@ -109,23 +111,44 @@ export class CredentialsComponent implements OnInit {
 
   openDialog(credential?: Credential): void {
     const dialogRef = this.dialog.open(CredentialDialogComponent, {
-      width: '500px',
+      width: '95vw',           // 95% della larghezza del viewport
+      maxWidth: '1400px',      // Larghezza massima in pixel
+      height: '90vh',          // 90% dell'altezza del viewport
+      maxHeight: '900px',      // Altezza massima in pixel
+      panelClass: 'credential-dialog-container', // Classe CSS personalizzata
+      disableClose: false,     // Permette di chiudere con ESC o click fuori
+      hasBackdrop: true,       // Mantiene il backdrop
+      backdropClass: 'credential-dialog-backdrop', // Classe personalizzata per il backdrop
       data: credential ? { ...credential } : {}
     });
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        if (result.id) {
+    dialogRef.afterClosed().subscribe(crdential => {
+      if (crdential) {
+        if (crdential.id) {
           // Update existing credential
-          this.credentialsService.updateCredential(result.id, result).subscribe({
-            next: () => this.loadCredentials(),
-            error: (error) => console.error('Error updating credential', error)
+          this.credentialsService.updateCredential(crdential.id, crdential).subscribe({
+            next: () => {
+              this.showSuccessMessage(`Credenziale "${crdential.name}" creata con successo!!!`);
+              this.loadCredentials()
+            },
+            error: (error) => {
+              console.error('Error updating credential', error);
+              this.showErrorMessage('Errore durante la modifica della credenziale');
+              this.loading = false;
+            }
           });
         } else {
           // Create new credential
-          this.credentialsService.createCredential(result).subscribe({
-            next: () => this.loadCredentials(),
-            error: (error) => console.error('Error creating credential', error)
+          this.credentialsService.createCredential(crdential).subscribe({
+            next: () => {
+              this.showSuccessMessage(`Credenziale "${crdential.name}" modificata con successo!!!`);
+              this.loadCredentials()
+            },
+            error: (error) => {
+              console.error('Error creating credential', error);
+              this.showErrorMessage('Errore durante la creazione della credenziale');
+              this.loading = false;
+            }
           });
         }
       }
@@ -133,18 +156,68 @@ export class CredentialsComponent implements OnInit {
   }
 
   deleteCredential(id: number): void {
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+    /* const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
       data: { title: 'Conferma', message: 'Sei sicuro di voler eliminare questa credenziale?' }
+    }); */
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '450px',
+      data: {
+        title: 'Conferma Eliminazione',
+        message: `Sei sicuro di voler eliminare definitivamente la credenziale con id "${id}"?\n\nQuesta operazione non può essere annullata.`,
+        confirmText: 'Elimina',
+        cancelText: 'Annulla',
+        type: 'delete'
+      }
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         this.credentialsService.deleteCredential(id).subscribe({
-          next: () => this.loadCredentials(),
+          next: () => {
+            this.showSuccessMessage(`Credenziale con id "${id}" è stata eliminata con successo!!!`)
+            this.loadCredentials()
+          },
           error: (error) => console.error('Error deleting credential', error)
         });
       }
+    });
+  }
+
+  /**
+   * Mostra un messaggio di successo
+   */
+  private showSuccessMessage(message: string): void {
+    this.snackBar.open(message, 'Chiudi', {
+      duration: 4000,
+      panelClass: ['success-snackbar'],
+      horizontalPosition: 'end',
+      verticalPosition: 'top'
+    });
+  }
+
+  /**
+   * Mostra un messaggio di errore
+   */
+  private showErrorMessage(message: string): void {
+    this.snackBar.open(message, 'Chiudi', {
+      duration: 6000,
+      panelClass: ['error-snackbar'],
+      horizontalPosition: 'end',
+      verticalPosition: 'top'
+    });
+  }
+
+  /**
+   * Mostra un messaggio informativo
+   */
+  private showInfoMessage(message: string): void {
+    this.snackBar.open(message, 'Chiudi', {
+      duration: 3000,
+      panelClass: ['info-snackbar'],
+      horizontalPosition: 'end',
+      verticalPosition: 'top'
     });
   }
 

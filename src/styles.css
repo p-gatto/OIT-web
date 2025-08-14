@@ -8,3 +8,113 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 * {
   box-sizing: border-box;
 }
+
+/* Stili per il dialog delle credenziali */
+.credential-dialog-container {
+  border-radius: 12px !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+}
+
+.credential-dialog-container .mat-mdc-dialog-container {
+  padding: 0 !important;
+  border-radius: 12px !important;
+  max-width: none !important;
+  max-height: none !important;
+}
+
+.credential-dialog-backdrop {
+  background-color: rgba(0, 0, 0, 0.6) !important;
+}
+
+/* Assicura che il dialog sia responsive su schermi più piccoli */
+@media (max-width: 768px) {
+  .credential-dialog-container {
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    border-radius: 0 !important;
+  }
+  
+  .credential-dialog-container .mat-mdc-dialog-container {
+    border-radius: 0 !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .credential-dialog-container {
+    margin: 0 !important;
+  }
+}
+
+/* Migliora la scrollbar del dialog */
+.credential-dialog-container .mat-mdc-dialog-content {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
+.credential-dialog-container .mat-mdc-dialog-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.credential-dialog-container .mat-mdc-dialog-content::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.credential-dialog-container .mat-mdc-dialog-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.credential-dialog-container .mat-mdc-dialog-content::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Stili per le SnackBar */
+.success-snackbar {
+  background-color: #059669 !important;
+  color: white !important;
+}
+
+.success-snackbar .mat-mdc-snack-bar-action {
+  color: #ecfdf5 !important;
+}
+
+.error-snackbar {
+  background-color: #dc2626 !important;
+  color: white !important;
+}
+
+.error-snackbar .mat-mdc-snack-bar-action {
+  color: #fef2f2 !important;
+}
+
+.info-snackbar {
+  background-color: #2563eb !important;
+  color: white !important;
+}
+
+.info-snackbar .mat-mdc-snack-bar-action {
+  color: #eff6ff !important;
+}
+
+.warning-snackbar {
+  background-color: #ea580c !important;
+  color: white !important;
+}
+
+.warning-snackbar .mat-mdc-snack-bar-action {
+  color: #fff7ed !important;
+}
+
+/* Personalizzazione generale delle snackbar */
+.mat-mdc-snack-bar-container {
+  border-radius: 8px !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+  font-weight: 500 !important;
+}
+
+.mat-mdc-snack-bar-action {
+  font-weight: 600 !important;
+}
