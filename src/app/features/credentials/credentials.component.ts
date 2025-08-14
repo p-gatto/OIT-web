@@ -128,7 +128,7 @@ export class CredentialsComponent implements OnInit {
           // Update existing credential
           this.credentialsService.updateCredential(crdential.id, crdential).subscribe({
             next: () => {
-              this.showSuccessMessage(`Credenziale "${crdential.name}" creata con successo!!!`);
+              this.showSuccessMessage(`Credenziale "${crdential.name}" modificata con successo!!!`);
               this.loadCredentials()
             },
             error: (error) => {
@@ -141,7 +141,7 @@ export class CredentialsComponent implements OnInit {
           // Create new credential
           this.credentialsService.createCredential(crdential).subscribe({
             next: () => {
-              this.showSuccessMessage(`Credenziale "${crdential.name}" modificata con successo!!!`);
+              this.showSuccessMessage(`Credenziale "${crdential.name}" creata con successo!!!`);
               this.loadCredentials()
             },
             error: (error) => {
