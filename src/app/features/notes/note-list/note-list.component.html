@@ -1,0 +1,280 @@
+<!-- src/app/features/notes/note-list/note-list.component.html -->
+<div class="animate-fade-in">
+    <!-- Header -->
+    <div class="mb-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800 mb-2">Gestione Note Tecniche</h1>
+                <p class="text-gray-600">Gestisci tutte le tue note, comandi e procedure</p>
+            </div>
+            <button mat-raised-button color="primary" (click)="openDialog()" class="self-start sm:self-auto">
+                <mat-icon class="mr-2">add</mat-icon>
+                Nuova Nota
+            </button>
+        </div>
+    </div>
+
+    <!-- Filters Card -->
+    <mat-card class="mb-6">
+        <mat-card-header>
+            <mat-card-title class="flex items-center">
+                <mat-icon class="mr-2">filter_list</mat-icon>
+                Filtri
+            </mat-card-title>
+        </mat-card-header>
+        <mat-card-content class="pt-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                <!-- Search Filter -->
+                <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Cerca</mat-label>
+                    <input matInput placeholder="Nome, descrizione, contenuto..." [(ngModel)]="searchFilter"
+                        (ngModelChange)="applyFilters()">
+                    <mat-icon matSuffix>search</mat-icon>
+                </mat-form-field>
+
+                <!-- Area Filter -->
+                <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Area</mat-label>
+                    <mat-select [(ngModel)]="areaFilter" (ngModelChange)="applyFilters()">
+                        <mat-option value="">Tutte le aree</mat-option>
+                        <mat-option *ngFor="let area of uniqueAreas" [value]="area">
+                            {{ area }}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+
+                <!-- Category Filter -->
+                <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Categoria</mat-label>
+                    <mat-select [(ngModel)]="categoryFilter" (ngModelChange)="applyFilters()">
+                        <mat-option value="">Tutte le categorie</mat-option>
+                        <mat-option *ngFor="let category of uniqueCategories" [value]="category">
+                            {{ category }}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+
+                <!-- Type Filter -->
+                <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Tipo</mat-label>
+                    <mat-select [(ngModel)]="typeFilter" (ngModelChange)="applyFilters()">
+                        <mat-option value="">Tutti i tipi</mat-option>
+                        <mat-option *ngFor="let type of uniqueTypes" [value]="type">
+                            {{ type }}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+
+                <!-- Favorites Filter -->
+                <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Stato</mat-label>
+                    <mat-select [(ngModel)]="favoriteFilter" (ngModelChange)="applyFilters()">
+                        <mat-option value="">Tutte</mat-option>
+                        <mat-option value="favorites">Solo Preferite</mat-option>
+                        <mat-option value="regular">Non Preferite</mat-option>
+                    </mat-select>
+                </mat-form-field>
+            </div>
+
+            <div class="flex items-center justify-between mt-4">
+                <div class="text-sm text-gray-600">
+                    Risultati: {{ dataSource.filteredData.length }} di {{ dataSource.data.length }}
+                </div>
+                <button mat-button color="accent" (click)="clearFilters()">
+                    <mat-icon class="mr-1">clear</mat-icon>
+                    Pulisci Filtri
+                </button>
+            </div>
+        </mat-card-content>
+    </mat-card>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="flex justify-center items-center py-20">
+        <mat-spinner></mat-spinner>
+    </div>
+
+    <!-- Table Card -->
+    <mat-card *ngIf="!loading">
+        <mat-card-content class="p-0">
+            <!-- Table Container -->
+            <div class="overflow-x-auto">
+                <table mat-table [dataSource]="dataSource" matSort class="w-full">
+                    <!-- Name Column -->
+                    <ng-container matColumnDef="name">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header class="font-semibold">
+                            Nome
+                        </th>
+                        <td mat-cell *matCellDef="let element" class="max-w-xs">
+                            <div class="flex items-center">
+                                <mat-icon *ngIf="element.isFavorite" class="text-red-500 mr-2 text-sm"
+                                    matTooltip="Preferita">
+                                    favorite
+                                </mat-icon>
+                                <div class="min-w-0 flex-1">
+                                    <div class="font-medium text-gray-900 truncate" [matTooltip]="element.name">
+                                        {{ element.name }}
+                                    </div>
+                                    <div *ngIf="element.description" class="text-sm text-gray-500 truncate"
+                                        [matTooltip]="element.description">
+                                        {{ element.description }}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <!-- Category Column -->
+                    <ng-container matColumnDef="category">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header class="font-semibold">
+                            Categoria
+                        </th>
+                        <td mat-cell *matCellDef="let element">
+                            <div class="flex flex-col">
+                                <mat-chip class="text-xs mb-1">{{ element.area }}</mat-chip>
+                                <span class="text-sm font-medium">{{ element.category }}</span>
+                                <span class="text-xs text-gray-500">{{ element.subCategory }}</span>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <!-- Type Column -->
+                    <ng-container matColumnDef="type">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header class="font-semibold">
+                            Tipo
+                        </th>
+                        <td mat-cell *matCellDef="let element">
+                            <mat-chip class="text-xs bg-blue-100 text-blue-800">{{ element.type }}</mat-chip>
+                        </td>
+                    </ng-container>
+
+                    <!-- Usage Stats Column -->
+                    <ng-container matColumnDef="stats">
+                        <th mat-header-cell *matHeaderCellDef class="font-semibold">
+                            Statistiche
+                        </th>
+                        <td mat-cell *matCellDef="let element">
+                            <div class="flex flex-col text-sm">
+                                <div class="flex items-center mb-1">
+                                    <mat-icon class="text-xs mr-1 text-blue-600">bar_chart</mat-icon>
+                                    <span class="font-medium">{{ element.usageCount }}</span>
+                                    <span class="text-gray-500 ml-1">utilizzi</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <mat-icon class="text-xs mr-1 text-green-600">access_time</mat-icon>
+                                    <span class="text-gray-600">{{ formatDate(element.lastUsed) }}</span>
+                                </div>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <!-- Description Column -->
+                    <ng-container matColumnDef="description">
+                        <th mat-header-cell *matHeaderCellDef class="font-semibold">
+                            Contenuto
+                        </th>
+                        <td mat-cell *matCellDef="let element" class="max-w-sm">
+                            <div *ngIf="element.freeText; else noContent" class="bg-gray-50 border rounded p-2">
+                                <pre class="text-xs text-gray-700 whitespace-pre-wrap line-clamp-3 font-mono"
+                                    [matTooltip]="element.freeText">{{ element.freeText }}</pre>
+                            </div>
+                            <ng-template #noContent>
+                                <span class="text-gray-400 italic text-sm">Nessun contenuto</span>
+                            </ng-template>
+                        </td>
+                    </ng-container>
+
+                    <!-- Dates Column -->
+                    <ng-container matColumnDef="dates">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header="createdAt" class="font-semibold">
+                            Date
+                        </th>
+                        <td mat-cell *matCellDef="let element">
+                            <div class="text-sm">
+                                <div class="flex items-center mb-1">
+                                    <mat-icon class="text-xs mr-1 text-gray-500">add</mat-icon>
+                                    <span>{{ formatDate(element.createdAt) }}</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <mat-icon class="text-xs mr-1 text-gray-500">edit</mat-icon>
+                                    <span>{{ formatDate(element.updatedAt) }}</span>
+                                </div>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <!-- Actions Column -->
+                    <ng-container matColumnDef="actions">
+                        <th mat-header-cell *matHeaderCellDef class="font-semibold text-center">
+                            Azioni
+                        </th>
+                        <td mat-cell *matCellDef="let element" class="text-center">
+                            <div class="flex items-center justify-center space-x-1">
+                                <button mat-icon-button color="primary" matTooltip="Visualizza nota"
+                                    (click)="viewNote(element)">
+                                    <mat-icon class="text-sm">visibility</mat-icon>
+                                </button>
+
+                                <button mat-icon-button color="accent" matTooltip="Modifica"
+                                    (click)="openDialog(element)">
+                                    <mat-icon class="text-sm">edit</mat-icon>
+                                </button>
+
+                                <button mat-icon-button matTooltip="Copia contenuto" (click)="copyToClipboard(element)"
+                                    *ngIf="element.freeText">
+                                    <mat-icon class="text-sm">content_copy</mat-icon>
+                                </button>
+
+                                <button mat-icon-button [matMenuTriggerFor]="actionMenu" matTooltip="Più azioni">
+                                    <mat-icon class="text-sm">more_vert</mat-icon>
+                                </button>
+
+                                <mat-menu #actionMenu="matMenu">
+                                    <button mat-menu-item (click)="toggleFavorite(element)">
+                                        <mat-icon>{{ element.isFavorite ? 'favorite_border' : 'favorite' }}</mat-icon>
+                                        <span>{{ element.isFavorite ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti'
+                                            }}</span>
+                                    </button>
+
+                                    <button mat-menu-item (click)="duplicateNote(element)">
+                                        <mat-icon>content_copy</mat-icon>
+                                        <span>Duplica</span>
+                                    </button>
+
+                                    <mat-divider></mat-divider>
+
+                                    <button mat-menu-item (click)="deleteNote(element)" class="text-red-600">
+                                        <mat-icon class="text-red-600">delete</mat-icon>
+                                        <span>Elimina</span>
+                                    </button>
+                                </mat-menu>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <!-- Table Headers and Rows -->
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+                        class="hover:bg-gray-50 transition-colors cursor-pointer"></tr>
+                </table>
+            </div>
+
+            <!-- No Data Message -->
+            <div *ngIf="dataSource.filteredData.length === 0 && !loading" class="text-center py-12">
+                <mat-icon class="text-6xl text-gray-300 mb-4">note_alt</mat-icon>
+                <h3 class="text-xl font-semibold text-gray-600 mb-2">Nessuna nota trovata</h3>
+                <p class="text-gray-500 mb-4">
+                    {{ dataSource.data.length === 0 ? 'Inizia aggiungendo la tua prima nota' : `Prova a modificare i
+                    filtri di ricerca` }}
+                </p>
+                <button *ngIf="dataSource.data.length === 0" mat-raised-button color="primary" (click)="openDialog()">
+                    <mat-icon class="mr-2">add</mat-icon>
+                    Aggiungi prima nota
+                </button>
+            </div>
+
+            <!-- Paginator -->
+            <mat-paginator *ngIf="dataSource.filteredData.length > 0" [pageSizeOptions]="[10, 25, 50, 100]"
+                [pageSize]="25" showFirstLastButtons class="border-t"></mat-paginator>
+        </mat-card-content>
+    </mat-card>
+</div>
