@@ -1,6 +1,7 @@
 <!-- src/app/features/notes/note-dialog/note-dialog.component.html -->
-<div class="note-dialog">
-    <div mat-dialog-title class="flex items-center justify-between">
+<!-- <div class="note-dialog"> -->
+<div mat-dialog-title>
+    <div class="flex items-center justify-between mb-4">
         <h2 class="text-xl font-semibold">
             {{ isEditMode ? 'Modifica Nota' : 'Nuova Nota' }}
         </h2>
@@ -8,124 +9,125 @@
             <mat-icon>close</mat-icon>
         </button>
     </div>
+</div>
 
-    <div mat-dialog-content class="py-4">
-        <form [formGroup]="noteForm" class="space-y-4">
-            <!-- Name Field -->
+<div mat-dialog-content>
+    <form [formGroup]="noteForm"> <!-- class="space-y-4" -->
+        <!-- Name Field -->
+        <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Nome *</mat-label>
+            <input matInput formControlName="name" placeholder="Nome della nota" maxlength="500">
+            <mat-icon matSuffix>edit</mat-icon>
+            <mat-hint>{{ noteForm.get('name')?.value?.length || 0 }}/500</mat-hint>
+            <mat-error *ngIf="noteForm.get('name')?.hasError('required')">
+                Il nome è obbligatorio
+            </mat-error>
+        </mat-form-field>
+
+        <!-- Description Field -->
+        <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Descrizione</mat-label>
+            <textarea matInput formControlName="description" placeholder="Breve descrizione della nota" rows="2"
+                maxlength="1000"></textarea>
+            <mat-icon matSuffix>description</mat-icon>
+            <mat-hint>{{ noteForm.get('description')?.value?.length || 0 }}/1000</mat-hint>
+        </mat-form-field>
+
+        <!-- Category Fields Row -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Area Field -->
             <mat-form-field appearance="outline" class="w-full">
-                <mat-label>Nome *</mat-label>
-                <input matInput formControlName="name" placeholder="Nome della nota" maxlength="500">
-                <mat-icon matSuffix>edit</mat-icon>
-                <mat-hint>{{ noteForm.get('name')?.value?.length || 0 }}/500</mat-hint>
-                <mat-error *ngIf="noteForm.get('name')?.hasError('required')">
-                    Il nome è obbligatorio
+                <mat-label>Area *</mat-label>
+                <mat-select formControlName="area">
+                    <mat-option *ngFor="let area of predefinedAreas" [value]="area">
+                        {{ area }}
+                    </mat-option>
+                </mat-select>
+                <mat-error *ngIf="noteForm.get('area')?.hasError('required')">
+                    L'area è obbligatoria
                 </mat-error>
             </mat-form-field>
 
-            <!-- Description Field -->
+            <!-- Category Field -->
             <mat-form-field appearance="outline" class="w-full">
-                <mat-label>Descrizione</mat-label>
-                <textarea matInput formControlName="description" placeholder="Breve descrizione della nota" rows="2"
-                    maxlength="1000"></textarea>
-                <mat-icon matSuffix>description</mat-icon>
-                <mat-hint>{{ noteForm.get('description')?.value?.length || 0 }}/1000</mat-hint>
+                <mat-label>Categoria *</mat-label>
+                <mat-select formControlName="category">
+                    <mat-option *ngFor="let category of getFilteredCategories()" [value]="category">
+                        {{ category }}
+                    </mat-option>
+                </mat-select>
+                <mat-error *ngIf="noteForm.get('category')?.hasError('required')">
+                    La categoria è obbligatoria
+                </mat-error>
             </mat-form-field>
 
-            <!-- Category Fields Row -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <!-- Area Field -->
-                <mat-form-field appearance="outline" class="w-full">
-                    <mat-label>Area *</mat-label>
-                    <mat-select formControlName="area">
-                        <mat-option *ngFor="let area of predefinedAreas" [value]="area">
-                            {{ area }}
-                        </mat-option>
-                    </mat-select>
-                    <mat-error *ngIf="noteForm.get('area')?.hasError('required')">
-                        L'area è obbligatoria
-                    </mat-error>
-                </mat-form-field>
-
-                <!-- Category Field -->
-                <mat-form-field appearance="outline" class="w-full">
-                    <mat-label>Categoria *</mat-label>
-                    <mat-select formControlName="category">
-                        <mat-option *ngFor="let category of getFilteredCategories()" [value]="category">
-                            {{ category }}
-                        </mat-option>
-                    </mat-select>
-                    <mat-error *ngIf="noteForm.get('category')?.hasError('required')">
-                        La categoria è obbligatoria
-                    </mat-error>
-                </mat-form-field>
-
-                <!-- SubCategory Field -->
-                <mat-form-field appearance="outline" class="w-full">
-                    <mat-label>Sottocategoria *</mat-label>
-                    <mat-select formControlName="subCategory">
-                        <mat-option *ngFor="let subCat of getFilteredSubCategories()" [value]="subCat">
-                            {{ subCat }}
-                        </mat-option>
-                    </mat-select>
-                    <mat-error *ngIf="noteForm.get('subCategory')?.hasError('required')">
-                        La sottocategoria è obbligatoria
-                    </mat-error>
-                </mat-form-field>
-
-                <!-- Type Field -->
-                <mat-form-field appearance="outline" class="w-full">
-                    <mat-label>Tipo *</mat-label>
-                    <mat-select formControlName="type">
-                        <mat-option *ngFor="let type of noteTypes" [value]="type">
-                            {{ type }}
-                        </mat-option>
-                    </mat-select>
-                    <mat-error *ngIf="noteForm.get('type')?.hasError('required')">
-                        Il tipo è obbligatorio
-                    </mat-error>
-                </mat-form-field>
-            </div>
-
-            <!-- Free Text Field -->
+            <!-- SubCategory Field -->
             <mat-form-field appearance="outline" class="w-full">
-                <mat-label>Contenuto</mat-label>
-                <textarea matInput formControlName="freeText"
-                    placeholder="Inserisci qui il contenuto della nota (comandi, procedure, codice, etc.)" rows="8"
-                    maxlength="5000"></textarea>
-                <mat-icon matSuffix>code</mat-icon>
-                <mat-hint>{{ noteForm.get('freeText')?.value?.length || 0 }}/5000</mat-hint>
+                <mat-label>Sottocategoria *</mat-label>
+                <mat-select formControlName="subCategory">
+                    <mat-option *ngFor="let subCat of getFilteredSubCategories()" [value]="subCat">
+                        {{ subCat }}
+                    </mat-option>
+                </mat-select>
+                <mat-error *ngIf="noteForm.get('subCategory')?.hasError('required')">
+                    La sottocategoria è obbligatoria
+                </mat-error>
             </mat-form-field>
 
-            <!-- Favorite Checkbox -->
-            <div class="flex items-center">
-                <mat-checkbox formControlName="isFavorite" color="primary">
-                    <span class="flex items-center">
-                        <mat-icon class="mr-2 text-red-500">favorite</mat-icon>
-                        Aggiungi ai preferiti
-                    </span>
-                </mat-checkbox>
-            </div>
+            <!-- Type Field -->
+            <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Tipo *</mat-label>
+                <mat-select formControlName="type">
+                    <mat-option *ngFor="let type of noteTypes" [value]="type">
+                        {{ type }}
+                    </mat-option>
+                </mat-select>
+                <mat-error *ngIf="noteForm.get('type')?.hasError('required')">
+                    Il tipo è obbligatorio
+                </mat-error>
+            </mat-form-field>
+        </div>
 
-            <!-- Preview Section -->
-            <div *ngIf="noteForm.get('freeText')?.value" class="bg-gray-50 border rounded-lg p-4">
-                <div class="flex items-center mb-2">
-                    <mat-icon class="text-blue-500 mr-2">preview</mat-icon>
-                    <span class="font-medium text-gray-700">Anteprima contenuto</span>
-                </div>
-                <pre
-                    class="whitespace-pre-wrap text-sm bg-white p-3 rounded border font-mono">{{ noteForm.get('freeText')?.value }}</pre>
-            </div>
-        </form>
-    </div>
+        <!-- Free Text Field -->
+        <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Contenuto</mat-label>
+            <textarea matInput formControlName="freeText"
+                placeholder="Inserisci qui il contenuto della nota (comandi, procedure, codice, etc.)" rows="8"
+                maxlength="5000"></textarea>
+            <mat-icon matSuffix>code</mat-icon>
+            <mat-hint>{{ noteForm.get('freeText')?.value?.length || 0 }}/5000</mat-hint>
+        </mat-form-field>
 
-    <div mat-dialog-actions class="flex justify-end space-x-2 p-4">
-        <button mat-button mat-dialog-close>
-            Annulla
-        </button>
-        <button mat-raised-button color="primary" (click)="onSave()" [disabled]="noteForm.invalid || saving">
-            <mat-spinner *ngIf="saving" diameter="20" class="mr-2"></mat-spinner>
-            <mat-icon *ngIf="!saving" class="mr-2">save</mat-icon>
-            {{ isEditMode ? 'Aggiorna' : 'Salva' }}
-        </button>
-    </div>
+        <!-- Favorite Checkbox -->
+        <div class="flex items-center">
+            <mat-checkbox formControlName="isFavorite" color="primary">
+                <span class="flex items-center">
+                    <mat-icon class="mr-2 text-red-500">favorite</mat-icon>
+                    Aggiungi ai preferiti
+                </span>
+            </mat-checkbox>
+        </div>
+
+        <!-- Preview Section -->
+        <div *ngIf="noteForm.get('freeText')?.value" class="bg-gray-50 border rounded-lg p-4">
+            <div class="flex items-center mb-2">
+                <mat-icon class="text-blue-500 mr-2">preview</mat-icon>
+                <span class="font-medium text-gray-700">Anteprima contenuto</span>
+            </div>
+            <pre
+                class="whitespace-pre-wrap text-sm bg-white p-3 rounded border font-mono">{{ noteForm.get('freeText')?.value }}</pre>
+        </div>
+    </form>
 </div>
+
+<div mat-dialog-actions class="flex justify-end space-x-2 p-4">
+    <button mat-button mat-dialog-close>
+        Annulla
+    </button>
+    <button mat-raised-button color="primary" (click)="onSave()" [disabled]="noteForm.invalid || saving">
+        <mat-spinner *ngIf="saving" diameter="20" class="mr-2"></mat-spinner>
+        <mat-icon *ngIf="!saving" class="mr-2">save</mat-icon>
+        {{ isEditMode ? 'Aggiorna' : 'Salva' }}
+    </button>
+</div>
+<!-- </div> -->

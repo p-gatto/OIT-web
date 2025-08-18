@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { NotesService } from './notes.service';
 import { Note } from './note.models';
 import { CommonModule } from '@angular/common';
@@ -18,6 +18,7 @@ import { MatSelectModule } from '@angular/material/select';
   selector: 'app-notes',
   imports: [
     CommonModule,
+    RouterLink,
     ReactiveFormsModule,
     FormsModule,
     MatTabsModule,
@@ -41,9 +42,8 @@ export default class NotesComponent {
   loading = true;
   selectedTabIndex = 0;
 
-  mostUsedNotes: Note[] = [];
-  favoriteNotes: Note[] = [];
-  recentNotes: Note[] = [];
+  allNotes: Note[] = [];
+  noteTypes: string[] = [];
 
   constructor() { }
 
@@ -51,17 +51,7 @@ export default class NotesComponent {
     // Check for query params to set initial tab
     this.route.queryParams.subscribe(params => {
       if (params['tab']) {
-        switch (params['tab']) {
-          case 'most-used':
-            this.selectedTabIndex = 0;
-            break;
-          case 'favorites':
-            this.selectedTabIndex = 1;
-            break;
-          case 'recent':
-            this.selectedTabIndex = 2;
-            break;
-        }
+        // Handle tab selection if needed
       }
     });
 
@@ -69,24 +59,49 @@ export default class NotesComponent {
   }
 
   loadData(): void {
-    // Load all data in parallel
-    Promise.all([
-      this.notesService.getMostUsed(10).toPromise(),
-      this.notesService.getFavorites(10).toPromise(),
-      this.notesService.getRecent(10).toPromise()
-    ]).then(([mostUsed, favorites, recent]) => {
-      this.mostUsedNotes = mostUsed || [];
-      this.favoriteNotes = favorites || [];
-      this.recentNotes = recent || [];
-      this.loading = false;
-    }).catch(error => {
-      console.error('Error loading notes data:', error);
-      this.loading = false;
+    // Load all notes and extract unique types
+    this.notesService.getAll().subscribe({
+      next: (notes) => {
+        this.allNotes = notes;
+        this.noteTypes = [...new Set(notes.map(note => note.type))].sort();
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error loading notes data:', error);
+        this.loading = false;
+      }
     });
   }
 
   onTabChange(event: any): void {
     this.selectedTabIndex = event.index;
+  }
+
+  // Metodi per contare le note per tipo
+  getNoteCountByType(type: string): number {
+    return this.allNotes.filter(note => note.type === type).length;
+  }
+
+  // Metodi per filtrare le note per tipo e categoria
+  getMostUsedByType(type: string, count: number = 10): Note[] {
+    return this.allNotes
+      .filter(note => note.type === type)
+      .sort((a, b) => b.usageCount - a.usageCount)
+      .slice(0, count);
+  }
+
+  getFavoritesByType(type: string, count: number = 10): Note[] {
+    return this.allNotes
+      .filter(note => note.type === type && note.isFavorite)
+      .sort((a, b) => new Date(b.lastUsed).getTime() - new Date(a.lastUsed).getTime())
+      .slice(0, count);
+  }
+
+  getRecentByType(type: string, count: number = 10): Note[] {
+    return this.allNotes
+      .filter(note => note.type === type)
+      .sort((a, b) => new Date(b.lastUsed).getTime() - new Date(a.lastUsed).getTime())
+      .slice(0, count);
   }
 
   openNote(note: Note, event?: Event): void {
@@ -97,8 +112,8 @@ export default class NotesComponent {
     // Increment usage count
     this.notesService.incrementUsage(note.id).subscribe({
       next: () => {
-        // Optionally refresh the current tab data
-        this.refreshCurrentTab();
+        // Refresh data to show updated usage count
+        this.loadData();
       },
       error: (error) => {
         console.error('Error incrementing usage:', error);
@@ -122,28 +137,40 @@ export default class NotesComponent {
     });
   }
 
-  refreshCurrentTab(): void {
-    switch (this.selectedTabIndex) {
-      case 0:
-        this.notesService.getMostUsed(10).subscribe(notes => {
-          this.mostUsedNotes = notes;
-        });
-        break;
-      case 1:
-        this.notesService.getFavorites(10).subscribe(notes => {
-          this.favoriteNotes = notes;
-        });
-        break;
-      case 2:
-        this.notesService.getRecent(10).subscribe(notes => {
-          this.recentNotes = notes;
-        });
-        break;
-    }
+  getTypeIcon(type: string): string {
+    const iconMap: { [key: string]: string } = {
+      'Comando': 'terminal',
+      'Procedura': 'list_alt',
+      'Informazione Generica': 'info',
+      'Nota Tecnica': 'engineering',
+      'Tutorial': 'school',
+      'Snippet di Codice': 'code',
+      'Configurazione': 'settings',
+      'Risoluzione Problema': 'build_circle'
+    };
+    return iconMap[type] || 'note';
+  }
+
+  getTypeColor(type: string): string {
+    const colorMap: { [key: string]: string } = {
+      'Comando': 'bg-green-100 text-green-800',
+      'Procedura': 'bg-blue-100 text-blue-800',
+      'Informazione Generica': 'bg-gray-100 text-gray-800',
+      'Nota Tecnica': 'bg-purple-100 text-purple-800',
+      'Tutorial': 'bg-orange-100 text-orange-800',
+      'Snippet di Codice': 'bg-indigo-100 text-indigo-800',
+      'Configurazione': 'bg-yellow-100 text-yellow-800',
+      'Risoluzione Problema': 'bg-red-100 text-red-800'
+    };
+    return colorMap[type] || 'bg-gray-100 text-gray-800';
   }
 
   trackByNote(index: number, note: Note): number {
     return note.id;
+  }
+
+  trackByType(index: number, type: string): string {
+    return type;
   }
 
   formatDate(dateString: Date): string {
@@ -162,4 +189,5 @@ export default class NotesComponent {
       year: 'numeric'
     });
   }
+
 }
