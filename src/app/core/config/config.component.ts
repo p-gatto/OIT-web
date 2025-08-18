@@ -24,6 +24,7 @@ export default class ConfigComponent {
   credentialsApiBaseUrl = signal('');
   reportsApiBaseUrl = signal('');
   weblinksApiBaseUrl = signal('');
+  notesApiBaseUrl = signal('');
 
   constructor() {
     // Sottoscrizione ai cambiamenti della configurazione
@@ -37,6 +38,7 @@ export default class ConfigComponent {
         this.credentialsApiBaseUrl.set(config.credentialsApiBaseUrl);
         this.reportsApiBaseUrl.set(config.reportsApiBaseUrl);
         this.weblinksApiBaseUrl.set(config.weblinksApiBaseUrl);
+        this.notesApiBaseUrl.set(config.notesApiBaseUrl);
       }
     });
   }
@@ -51,6 +53,7 @@ export default class ConfigComponent {
       this.credentialsApiBaseUrl.set(config.credentialsApiBaseUrl);
       this.reportsApiBaseUrl.set(config.reportsApiBaseUrl);
       this.weblinksApiBaseUrl.set(config.weblinksApiBaseUrl);
+      this.notesApiBaseUrl.set(config.notesApiBaseUrl);
     }
   }
 

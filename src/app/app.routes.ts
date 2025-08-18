@@ -21,6 +21,14 @@ export const routes: Routes = [
         path: 'weblink-list',
         loadComponent: () => import('./features/weblinks/weblink-list/weblink-list.component')
     },
+    {
+        path: 'notes',
+        loadComponent: () => import('./features/notes/notes.component')
+    },
+    {
+        path: 'note-list',
+        loadComponent: () => import('./features/notes/note-list/note-list.component')
+    },
     { path: '', redirectTo: '/home', pathMatch: 'full' },
     {
         path: 'home',

@@ -3,6 +3,7 @@
   "credentialsApiBaseUrl": "https://www.overitech.it:8050/credentials-service",
   "reportsApiBaseUrl": "https://www.overitech.it:8050/reports-service",
   "weblinksApiBaseUrl": "https://www.overitech.it:8050/weblinks-service",
+  "notesApiBaseUrl": "https://www.overitech.it:8050/notes-service",
   "appName": "La Mia App Angular19 - Production (Web) Docker Env",
   "features": {
     "darkMode": true,
