@@ -2,10 +2,11 @@
   "managementsApiBaseUrl": "https://oit-web:5050/managements-service",
   "credentialsApiBaseUrl": "https://oit-web:5050/credentials-service",
   "reportsApiBaseUrl": "https://oit-web:5050/reports-service",
+  "weblinksApiBaseUrl": "https://oit-web:5050/weblinks-service",
   "appName": "La Mia App Angular19 - Hub (LAN) Docker Env",
   "features": {
     "darkMode": true,
     "notifications": true
   },
-  "version": "1.0.1"
+  "version": "1.0.4"
 }

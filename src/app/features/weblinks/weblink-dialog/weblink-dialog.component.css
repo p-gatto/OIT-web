@@ -1,0 +1,30 @@
+.weblink-dialog {
+    min-width: 500px;
+}
+
+.mat-mdc-form-field {
+    width: 100%;
+}
+
+.mat-mdc-dialog-title {
+    padding: 20px 24px 0;
+    margin: 0;
+}
+
+.mat-mdc-dialog-content {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.mat-mdc-dialog-actions {
+    padding: 8px 24px 20px;
+    margin: 0;
+    justify-content: flex-end;
+}
+
+@media (max-width: 600px) {
+    .weblink-dialog {
+    min-width: unset;
+    width: 100%;
+    }
+}

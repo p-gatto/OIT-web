@@ -1,0 +1,24 @@
+.mat-mdc-table {
+    border-spacing: 0;
+}
+
+.mat-mdc-header-cell {
+    background-color: #f8fafc;
+    font-weight: 600;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.mat-mdc-row:hover {
+    background-color: #f8fafc;
+}
+
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.mat-mdc-paginator {
+    background: transpare
+}

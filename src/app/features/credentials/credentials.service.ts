@@ -25,10 +25,10 @@ export class CredentialsService {
   constructor() {
     // Se la configurazione è già caricata
     const config = this.configService.getConfig();
-    console.log('Get config: ', config);
+    //console.log('Get config: ', config);
     if (config) {
       this.apiUrl.set(`${config.credentialsApiBaseUrl}/api/credentials`);
-      console.log('Get apiUrl: ', this.apiUrl());
+      //console.log('Get apiUrl: ', this.apiUrl());
     }
   }
 

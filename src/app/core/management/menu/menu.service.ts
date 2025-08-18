@@ -98,4 +98,5 @@ export class MenuService {
   private refreshMenuStructure(): void {
     this.getMenuStructure().subscribe();
   }
+
 }

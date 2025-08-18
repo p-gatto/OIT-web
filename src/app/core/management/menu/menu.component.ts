@@ -30,7 +30,7 @@ import { MenuItemDialogComponent } from './menu-item-dialog/menu-item-dialog.com
   templateUrl: './menu.component.html',
   styleUrl: './menu.component.css'
 })
-export class MenuComponent implements OnInit {
+export default class MenuComponent implements OnInit {
 
   menuGroups: MenuGroupDto[] = [];
 

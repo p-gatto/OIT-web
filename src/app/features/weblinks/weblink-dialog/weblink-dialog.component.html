@@ -1,0 +1,123 @@
+<div class="weblink-dialog">
+    <div mat-dialog-title class="flex items-center justify-between">
+        <h2 class="text-xl font-semibold">
+            {{ isEditMode ? 'Modifica Link' : 'Nuovo Link' }}
+        </h2>
+        <button mat-icon-button mat-dialog-close>
+            <mat-icon>close</mat-icon>
+        </button>
+    </div>
+
+    <div mat-dialog-content class="py-4">
+        <form [formGroup]="linkForm" class="space-y-4">
+            <!-- URL Field -->
+            <mat-form-field appearance="outline" class="w-full">
+                <mat-label>URL *</mat-label>
+                <input matInput formControlName="url" placeholder="https://esempio.com" type="url">
+                <mat-icon matSuffix>link</mat-icon>
+                <mat-error *ngIf="linkForm.get('url')?.hasError('required')">
+                    L'URL è obbligatorio
+                </mat-error>
+                <mat-error *ngIf="linkForm.get('url')?.hasError('pattern')">
+                    Inserisci un URL valido
+                </mat-error>
+            </mat-form-field>
+
+            <!-- Title Field -->
+            <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Titolo *</mat-label>
+                <input matInput formControlName="title" placeholder="Nome del link" maxlength="500">
+                <mat-icon matSuffix>title</mat-icon>
+                <mat-hint>{{ linkForm.get('title')?.value?.length || 0 }}/500</mat-hint>
+                <mat-error *ngIf="linkForm.get('title')?.hasError('required')">
+                    Il titolo è obbligatorio
+                </mat-error>
+            </mat-form-field>
+
+            <!-- Description Field -->
+            <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Descrizione</mat-label>
+                <textarea matInput formControlName="description" placeholder="Descrizione del link (facoltativa)"
+                    rows="3" maxlength="1000"></textarea>
+                <mat-icon matSuffix>description</mat-icon>
+                <mat-hint>{{ linkForm.get('description')?.value?.length || 0 }}/1000</mat-hint>
+            </mat-form-field>
+
+            <!-- Category Fields Row -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Area Field -->
+                <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Area *</mat-label>
+                    <mat-select formControlName="area">
+                        <mat-option *ngFor="let area of predefinedAreas" [value]="area">
+                            {{ area }}
+                        </mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="linkForm.get('area')?.hasError('required')">
+                        L'area è obbligatoria
+                    </mat-error>
+                </mat-form-field>
+
+                <!-- Category Field -->
+                <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Categoria *</mat-label>
+                    <mat-select formControlName="category">
+                        <mat-option *ngFor="let category of getFilteredCategories()" [value]="category">
+                            {{ category }}
+                        </mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="linkForm.get('category')?.hasError('required')">
+                        La categoria è obbligatoria
+                    </mat-error>
+                </mat-form-field>
+
+                <!-- SubCategory Field -->
+                <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Sottocategoria *</mat-label>
+                    <mat-select formControlName="subCategory">
+                        <mat-option *ngFor="let subCat of getFilteredSubCategories()" [value]="subCat">
+                            {{ subCat }}
+                        </mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="linkForm.get('subCategory')?.hasError('required')">
+                        La sottocategoria è obbligatoria
+                    </mat-error>
+                </mat-form-field>
+            </div>
+
+            <!-- Favorite Checkbox -->
+            <div class="flex items-center">
+                <mat-checkbox formControlName="isFavorite" color="primary">
+                    <span class="flex items-center">
+                        <mat-icon class="mr-2 text-red-500">favorite</mat-icon>
+                        Aggiungi ai preferiti
+                    </span>
+                </mat-checkbox>
+            </div>
+
+            <!-- URL Preview -->
+            <div *ngIf="linkForm.get('url')?.valid && linkForm.get('url')?.value"
+                class="bg-gray-50 border rounded-lg p-4">
+                <div class="flex items-center mb-2">
+                    <mat-icon class="text-blue-500 mr-2">preview</mat-icon>
+                    <span class="font-medium text-gray-700">Anteprima URL</span>
+                </div>
+                <a [href]="linkForm.get('url')?.value" target="_blank"
+                    class="text-blue-600 hover:text-blue-800 break-all text-sm">
+                    {{ linkForm.get('url')?.value }}
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <div mat-dialog-actions class="flex justify-end space-x-2 p-4">
+        <button mat-button mat-dialog-close>
+            Annulla
+        </button>
+        <button mat-raised-button color="primary" (click)="onSave()" [disabled]="linkForm.invalid || saving">
+            <mat-spinner *ngIf="saving" diameter="20" class="mr-2"></mat-spinner>
+            <mat-icon *ngIf="!saving" class="mr-2">save</mat-icon>
+            {{ isEditMode ? 'Aggiorna' : 'Salva' }}
+        </button>
+    </div>
+</div>

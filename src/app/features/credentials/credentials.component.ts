@@ -38,7 +38,7 @@ import { ConfirmDialogComponent } from './dialogs/confirm-dialog/confirm-dialog.
   templateUrl: './credentials.component.html',
   styleUrl: './credentials.component.css'
 })
-export class CredentialsComponent implements OnInit {
+export default class CredentialsComponent implements OnInit {
 
   credentialsService = inject(CredentialsService);
   dialog = inject(MatDialog);

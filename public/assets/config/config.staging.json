@@ -2,10 +2,11 @@
   "managementsApiBaseUrl": "https://ASUS-DEV:6060/managements-service",
   "credentialsApiBaseUrl": "https://ASUS-DEV:6060/credentials-service",
   "reportsApiBaseUrl": "https://ASUS-DEV:6060/reports-service",
+  "weblinksApiBaseUrl": "https://ASUS-DEV:6060/weblinks-service",
   "appName": "La Mia App Angular19 - Staging Docker Env",
   "features": {
     "darkMode": true,
     "notifications": true
   },
-  "version": "1.0.1"
+  "version": "1.0.4"
 }

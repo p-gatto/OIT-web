@@ -1,15 +1,30 @@
 import { Routes } from '@angular/router';
 
-import { ConfigComponent } from './core/config/config.component';
-import { HomeComponent } from './features/home/home.component';
-import { CredentialsComponent } from './features/credentials/credentials.component';
-import { MenuComponent } from './core/management/menu/menu.component';
-
 export const routes: Routes = [
-    { path: 'config', component: ConfigComponent },
-    { path: 'menu', component: MenuComponent },
-    { path: 'credentials', component: CredentialsComponent },
+    {
+        path: 'config',
+        loadComponent: () => import('./core/config/config.component')
+    },
+    {
+        path: 'menu',
+        loadComponent: () => import('./core/management/menu/menu.component')
+    },
+    {
+        path: 'credentials',
+        loadComponent: () => import('./features/credentials/credentials.component')
+    },
+    {
+        path: 'weblinks',
+        loadComponent: () => import('./features/weblinks/weblinks.component')
+    },
+    {
+        path: 'weblink-list',
+        loadComponent: () => import('./features/weblinks/weblink-list/weblink-list.component')
+    },
     { path: '', redirectTo: '/home', pathMatch: 'full' },
-    { path: 'home', component: HomeComponent },
+    {
+        path: 'home',
+        loadComponent: () => import('./features/home/home.component')
+    },
     { path: '**', redirectTo: '/home' }
 ];

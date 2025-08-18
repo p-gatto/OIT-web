@@ -13,7 +13,7 @@ import { ConfigService } from './config.service';
   templateUrl: './config.component.html',
   styles: ``
 })
-export class ConfigComponent {
+export default class ConfigComponent {
 
   private configService = inject(ConfigService);
 
@@ -23,6 +23,7 @@ export class ConfigComponent {
   managementsApiBaseUrl = signal('');
   credentialsApiBaseUrl = signal('');
   reportsApiBaseUrl = signal('');
+  weblinksApiBaseUrl = signal('');
 
   constructor() {
     // Sottoscrizione ai cambiamenti della configurazione
@@ -35,6 +36,7 @@ export class ConfigComponent {
         this.managementsApiBaseUrl.set(config.managementsApiBaseUrl);
         this.credentialsApiBaseUrl.set(config.credentialsApiBaseUrl);
         this.reportsApiBaseUrl.set(config.reportsApiBaseUrl);
+        this.weblinksApiBaseUrl.set(config.weblinksApiBaseUrl);
       }
     });
   }
@@ -48,6 +50,7 @@ export class ConfigComponent {
       this.managementsApiBaseUrl.set(config.managementsApiBaseUrl);
       this.credentialsApiBaseUrl.set(config.credentialsApiBaseUrl);
       this.reportsApiBaseUrl.set(config.reportsApiBaseUrl);
+      this.weblinksApiBaseUrl.set(config.weblinksApiBaseUrl);
     }
   }
 
