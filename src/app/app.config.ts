@@ -1,7 +1,7 @@
-import { APP_INITIALIZER, ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { provideHttpClient, withFetch } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
-import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import { provideAnimations } from '@angular/platform-browser/animations';
 
 import { MAT_DATE_LOCALE, provideNativeDateAdapter } from '@angular/material/core';
 
@@ -14,8 +14,7 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
     provideHttpClient(withFetch()),
-    provideAnimationsAsync(), // Necessario per Material Components
-
+    provideAnimations(), // Necessario per Material Components    
     // Configurazione DatePicker con Native Date Adapter
     provideNativeDateAdapter(),
     { provide: MAT_DATE_LOCALE, useValue: 'it-IT' }, // Locale italiano
