@@ -1,0 +1,273 @@
+<!-- src/app/features/notes/notes.component.html -->
+<div class="animate-fade-in">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-4xl font-bold text-gray-800 mb-2">Note Tecniche</h1>
+        <p class="text-gray-600 text-lg">Gestisci e organizza le tue note, comandi e procedure</p>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="flex justify-center items-center py-20">
+        <mat-spinner></mat-spinner>
+    </div>
+
+    <!-- Tabs -->
+    <mat-tab-group *ngIf="!loading" [selectedIndex]="selectedTabIndex" (selectedTabChange)="onTabChange($event)"
+        class="mb-6" dynamicHeight>
+
+        <!-- Most Used Tab -->
+        <mat-tab label="Più Utilizzate">
+            <ng-template matTabContent>
+                <div class="py-6">
+                    <div class="mb-4 flex items-center">
+                        <mat-icon class="text-green-600 mr-2">trending_up</mat-icon>
+                        <h2 class="text-xl font-semibold text-gray-800">Le 10 Note Più Utilizzate</h2>
+                    </div>
+
+                    <div *ngIf="mostUsedNotes.length > 0; else noNotesMessage"
+                        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <mat-card *ngFor="let note of mostUsedNotes; let i = index; trackBy: trackByNote"
+                            class="cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-lg animate-slide-up"
+                            (click)="openNote(note)">
+                            <mat-card-header class="pb-2">
+                                <div class="flex items-start justify-between w-full">
+                                    <div class="flex-1 min-w-0 mr-2">
+                                        <mat-card-title class="text-lg font-semibold text-gray-800 truncate"
+                                            [matTooltip]="note.name">
+                                            {{ note.name }}
+                                        </mat-card-title>
+                                        <mat-card-subtitle class="text-sm text-gray-600 mt-1">
+                                            {{ note.category }} • {{ note.subCategory }}
+                                        </mat-card-subtitle>
+                                    </div>
+                                    <div class="flex flex-col items-end">
+                                        <span
+                                            class="bg-green-100 text-green-800 text-xs font-semibold px-2 py-1 rounded-full mb-1">
+                                            #{{ i + 1 }}
+                                        </span>
+                                        <mat-icon *ngIf="note.isFavorite" class="text-red-500 text-sm"
+                                            matTooltip="Preferita">
+                                            favorite
+                                        </mat-icon>
+                                    </div>
+                                </div>
+                            </mat-card-header>
+
+                            <mat-card-content class="py-2">
+                                <p *ngIf="note.description" class="text-gray-600 text-sm mb-3 line-clamp-2">
+                                    {{ note.description }}
+                                </p>
+
+                                <div class="flex items-center justify-between text-xs text-gray-500 mb-3">
+                                    <span class="flex items-center">
+                                        <mat-icon class="text-xs mr-1">bar_chart</mat-icon>
+                                        {{ note.usageCount }} utilizzi
+                                    </span>
+                                    <span class="flex items-center">
+                                        <mat-icon class="text-xs mr-1">access_time</mat-icon>
+                                        {{ formatDate(note.lastUsed) }}
+                                    </span>
+                                </div>
+
+                                <!-- Preview del contenuto se presente -->
+                                <div *ngIf="note.freeText" class="bg-gray-50 border rounded p-2 mb-2">
+                                    <pre
+                                        class="text-xs text-gray-700 whitespace-pre-wrap line-clamp-3 font-mono">{{ note.freeText }}</pre>
+                                </div>
+                            </mat-card-content>
+
+                            <mat-card-actions class="pt-2">
+                                <div class="flex justify-between items-center w-full">
+                                    <div class="flex gap-1">
+                                        <mat-chip class="text-xs">{{ note.area }}</mat-chip>
+                                        <mat-chip class="text-xs bg-blue-100 text-blue-800">{{ note.type }}</mat-chip>
+                                    </div>
+                                    <div class="flex gap-1">
+                                        <button mat-icon-button matTooltip="Copia contenuto"
+                                            (click)="copyToClipboard(note.freeText || note.description || '', $event)"
+                                            *ngIf="note.freeText">
+                                            <mat-icon class="text-sm">content_copy</mat-icon>
+                                        </button>
+                                        <button mat-icon-button matTooltip="Visualizza nota"
+                                            (click)="openNote(note, $event)">
+                                            <mat-icon class="text-sm">visibility</mat-icon>
+                                        </button>
+                                    </div>
+                                </div>
+                            </mat-card-actions>
+                        </mat-card>
+                    </div>
+                </div>
+            </ng-template>
+        </mat-tab>
+
+        <!-- Favorites Tab -->
+        <mat-tab label="Preferite">
+            <ng-template matTabContent>
+                <div class="py-6">
+                    <div class="mb-4 flex items-center">
+                        <mat-icon class="text-red-600 mr-2">favorite</mat-icon>
+                        <h2 class="text-xl font-semibold text-gray-800">Le Tue Note Preferite</h2>
+                    </div>
+
+                    <div *ngIf="favoriteNotes.length > 0; else noNotesMessage"
+                        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <mat-card *ngFor="let note of favoriteNotes; trackBy: trackByNote"
+                            class="cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-lg animate-slide-up border-l-4 border-red-500"
+                            (click)="openNote(note)">
+                            <mat-card-header class="pb-2">
+                                <div class="flex items-start justify-between w-full">
+                                    <div class="flex-1 min-w-0 mr-2">
+                                        <mat-card-title class="text-lg font-semibold text-gray-800 truncate"
+                                            [matTooltip]="note.name">
+                                            {{ note.name }}
+                                        </mat-card-title>
+                                        <mat-card-subtitle class="text-sm text-gray-600 mt-1">
+                                            {{ note.category }} • {{ note.subCategory }}
+                                        </mat-card-subtitle>
+                                    </div>
+                                    <mat-icon class="text-red-500 animate-bounce-gentle">favorite</mat-icon>
+                                </div>
+                            </mat-card-header>
+
+                            <mat-card-content class="py-2">
+                                <p *ngIf="note.description" class="text-gray-600 text-sm mb-3 line-clamp-2">
+                                    {{ note.description }}
+                                </p>
+
+                                <div class="flex items-center justify-between text-xs text-gray-500 mb-3">
+                                    <span class="flex items-center">
+                                        <mat-icon class="text-xs mr-1">bar_chart</mat-icon>
+                                        {{ note.usageCount }} utilizzi
+                                    </span>
+                                    <span class="flex items-center">
+                                        <mat-icon class="text-xs mr-1">access_time</mat-icon>
+                                        {{ formatDate(note.lastUsed) }}
+                                    </span>
+                                </div>
+
+                                <!-- Preview del contenuto se presente -->
+                                <div *ngIf="note.freeText" class="bg-gray-50 border rounded p-2 mb-2">
+                                    <pre
+                                        class="text-xs text-gray-700 whitespace-pre-wrap line-clamp-3 font-mono">{{ note.freeText }}</pre>
+                                </div>
+                            </mat-card-content>
+
+                            <mat-card-actions class="pt-2">
+                                <div class="flex justify-between items-center w-full">
+                                    <div class="flex gap-1">
+                                        <mat-chip class="text-xs">{{ note.area }}</mat-chip>
+                                        <mat-chip class="text-xs bg-blue-100 text-blue-800">{{ note.type }}</mat-chip>
+                                    </div>
+                                    <div class="flex gap-1">
+                                        <button mat-icon-button matTooltip="Copia contenuto"
+                                            (click)="copyToClipboard(note.freeText || note.description || '', $event)"
+                                            *ngIf="note.freeText">
+                                            <mat-icon class="text-sm">content_copy</mat-icon>
+                                        </button>
+                                        <button mat-icon-button matTooltip="Visualizza nota"
+                                            (click)="openNote(note, $event)">
+                                            <mat-icon class="text-sm">visibility</mat-icon>
+                                        </button>
+                                    </div>
+                                </div>
+                            </mat-card-actions>
+                        </mat-card>
+                    </div>
+                </div>
+            </ng-template>
+        </mat-tab>
+
+        <!-- Recent Tab -->
+        <mat-tab label="Recenti">
+            <ng-template matTabContent>
+                <div class="py-6">
+                    <div class="mb-4 flex items-center">
+                        <mat-icon class="text-blue-600 mr-2">schedule</mat-icon>
+                        <h2 class="text-xl font-semibold text-gray-800">Ultime 10 Note Utilizzate</h2>
+                    </div>
+
+                    <div *ngIf="recentNotes.length > 0; else noNotesMessage"
+                        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <mat-card *ngFor="let note of recentNotes; trackBy: trackByNote"
+                            class="cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-lg animate-slide-up border-l-4 border-blue-500"
+                            (click)="openNote(note)">
+                            <mat-card-header class="pb-2">
+                                <div class="flex items-start justify-between w-full">
+                                    <div class="flex-1 min-w-0 mr-2">
+                                        <mat-card-title class="text-lg font-semibold text-gray-800 truncate"
+                                            [matTooltip]="note.name">
+                                            {{ note.name }}
+                                        </mat-card-title>
+                                        <mat-card-subtitle class="text-sm text-gray-600 mt-1">
+                                            {{ note.category }} • {{ note.subCategory }}
+                                        </mat-card-subtitle>
+                                    </div>
+                                    <div class="flex flex-col items-end">
+                                        <mat-icon class="text-blue-500 text-sm mb-1">access_time</mat-icon>
+                                        <mat-icon *ngIf="note.isFavorite" class="text-red-500 text-sm"
+                                            matTooltip="Preferita">
+                                            favorite
+                                        </mat-icon>
+                                    </div>
+                                </div>
+                            </mat-card-header>
+
+                            <mat-card-content class="py-2">
+                                <p *ngIf="note.description" class="text-gray-600 text-sm mb-3 line-clamp-2">
+                                    {{ note.description }}
+                                </p>
+
+                                <div class="flex items-center justify-between text-xs text-gray-500 mb-3">
+                                    <span class="flex items-center">
+                                        <mat-icon class="text-xs mr-1">bar_chart</mat-icon>
+                                        {{ note.usageCount }} utilizzi
+                                    </span>
+                                    <span class="flex items-center font-semibold text-blue-600">
+                                        <mat-icon class="text-xs mr-1">schedule</mat-icon>
+                                        {{ formatDate(note.lastUsed) }}
+                                    </span>
+                                </div>
+
+                                <!-- Preview del contenuto se presente -->
+                                <div *ngIf="note.freeText" class="bg-gray-50 border rounded p-2 mb-2">
+                                    <pre
+                                        class="text-xs text-gray-700 whitespace-pre-wrap line-clamp-3 font-mono">{{ note.freeText }}</pre>
+                                </div>
+                            </mat-card-content>
+
+                            <mat-card-actions class="pt-2">
+                                <div class="flex justify-between items-center w-full">
+                                    <div class="flex gap-1">
+                                        <mat-chip class="text-xs">{{ note.area }}</mat-chip>
+                                        <mat-chip class="text-xs bg-blue-100 text-blue-800">{{ note.type }}</mat-chip>
+                                    </div>
+                                    <div class="flex gap-1">
+                                        <button mat-icon-button matTooltip="Copia contenuto"
+                                            (click)="copyToClipboard(note.freeText || note.description || '', $event)"
+                                            *ngIf="note.freeText">
+                                            <mat-icon class="text-sm">content_copy</mat-icon>
+                                        </button>
+                                        <button mat-icon-button matTooltip="Visualizza nota"
+                                            (click)="openNote(note, $event)">
+                                            <mat-icon class="text-sm">visibility</mat-icon>
+                                        </button>
+                                    </div>
+                                </div>
+                            </mat-card-actions>
+                        </mat-card>
+                    </div>
+                </div>
+            </ng-template>
+        </mat-tab>
+    </mat-tab-group>
+
+    <!-- No Notes Message Template -->
+    <ng-template #noNotesMessage>
+        <div class="text-center py-12">
+            <mat-icon class="text-6xl text-gray-300 mb-4">note_alt</mat-icon>
+            <h3 class="text-xl font-semibold text-gray-600 mb-2">Nessuna nota trovata</h3>
+            <p class="text-gray-500">Non ci sono note disponibili in questa categoria.</p>
+        </div>
+    </ng-template>
+</div>
