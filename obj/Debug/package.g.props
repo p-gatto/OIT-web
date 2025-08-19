@@ -2,7 +2,7 @@
 <Project>
   <PropertyGroup>
     <PackageJsonName Condition="$(PackageJsonName) == ''">oit.web</PackageJsonName>
-    <PackageJsonVersion Condition="$(PackageJsonVersion) == ''">0.5.6</PackageJsonVersion>
+    <PackageJsonVersion Condition="$(PackageJsonVersion) == ''">0.6.1</PackageJsonVersion>
     <PackageJsonScriptsNg Condition="$(PackageJsonScriptsNg) == ''">ng</PackageJsonScriptsNg>
     <PackageJsonScriptsStart Condition="$(PackageJsonScriptsStart) == ''">ng serve</PackageJsonScriptsStart>
     <PackageJsonScriptsBuild Condition="$(PackageJsonScriptsBuild) == ''">ng build</PackageJsonScriptsBuild>
@@ -16,6 +16,7 @@
     <PackageJsonScriptsProd Condition="$(PackageJsonScriptsProd) == ''">ng serve --configuration production --allowed-hosts oit-web</PackageJsonScriptsProd>
     <PackageJsonScriptsTest Condition="$(PackageJsonScriptsTest) == ''">ng test</PackageJsonScriptsTest>
     <PackageJsonPrivate Condition="$(PackageJsonPrivate) == ''">true</PackageJsonPrivate>
+    <PackageJsonDependenciesAngularAnimations Condition="$(PackageJsonDependenciesAngularAnimations) == ''">^19.2.14</PackageJsonDependenciesAngularAnimations>
     <PackageJsonDependenciesAngularCdk Condition="$(PackageJsonDependenciesAngularCdk) == ''">^19.2.14</PackageJsonDependenciesAngularCdk>
     <PackageJsonDependenciesAngularCommon Condition="$(PackageJsonDependenciesAngularCommon) == ''">^19.2.14</PackageJsonDependenciesAngularCommon>
     <PackageJsonDependenciesAngularCompiler Condition="$(PackageJsonDependenciesAngularCompiler) == ''">^19.2.14</PackageJsonDependenciesAngularCompiler>

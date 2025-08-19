@@ -1,13 +1,17 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule, NgIf } from '@angular/common';
+import { Router } from '@angular/router';
 
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { DashboardCard, LinksSummary } from '../weblinks/weblink.models';
+import { MatTooltipModule } from '@angular/material/tooltip';
+
 import { WebLinksService } from '../weblinks/weblinks.service';
-import { Router } from '@angular/router';
+import { NotesService } from '../notes/notes.service';
+
+import { Card } from './card.model';
 
 @Component({
   selector: 'app-home',
@@ -17,136 +21,200 @@ import { Router } from '@angular/router';
     MatCardModule,
     MatIconModule,
     MatButtonModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatTooltipModule
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css'
 })
 export default class HomeComponent {
 
-  hasRoutes = false;
+  router = inject(Router);
+  webLinksService = inject(WebLinksService);
+  notesService = inject(NotesService);
 
   loading = true;
-  summary: LinksSummary | null = null;
-  dashboardCards: DashboardCard[] = [];
+  moduleCards: Card[] = [];
 
-  constructor(
-    private webLinksService: WebLinksService,
-    private router: Router
-  ) { }
+  // Configurazione base dei moduli
+  private baseModules: Omit<Card, 'count' | 'lastUsed'>[] = [
+    {
+      id: 'weblinks',
+      title: 'Web Links',
+      description: 'Gestisci e organizza i tuoi link web preferiti con categorie e statistiche d\'uso',
+      icon: 'link',
+      route: '/weblinks',
+      color: 'from-blue-500 to-blue-600',
+      gradient: 'bg-gradient-to-br from-blue-500 to-blue-600',
+      isActive: true
+    },
+    {
+      id: 'notes',
+      title: 'Note Tecniche',
+      description: 'Organizza comandi, procedure e note tecniche per tipo e categoria',
+      icon: 'note_alt',
+      route: '/notes',
+      color: 'from-green-500 to-green-600',
+      gradient: 'bg-gradient-to-br from-green-500 to-green-600',
+      isActive: true
+    },
+    {
+      id: 'credentials',
+      title: 'Credenziali',
+      description: 'Gestione sicura delle credenziali e informazioni di accesso',
+      icon: 'vpn_key',
+      route: '/credentials',
+      color: 'from-purple-500 to-purple-600',
+      gradient: 'bg-gradient-to-br from-purple-500 to-purple-600',
+      isActive: true
+    },
+    /*  {
+       id: 'menu-management',
+       title: 'Gestione Menu',
+       description: 'Configura la struttura di navigazione e i menu dell\'applicazione',
+       icon: 'menu',
+       route: '/menu',
+       color: 'from-orange-500 to-orange-600',
+       gradient: 'bg-gradient-to-br from-orange-500 to-orange-600',
+       isActive: true
+     }, */
+    /* {
+      id: 'weblink-list',
+      title: 'Lista Web Links',
+      description: 'Vista tabellare completa di tutti i web links con filtri avanzati',
+      icon: 'list',
+      route: '/weblink-list',
+      color: 'from-cyan-500 to-cyan-600',
+      gradient: 'bg-gradient-to-br from-cyan-500 to-cyan-600',
+      isActive: true
+    }, */
+    /* {
+      id: 'note-list',
+      title: 'Lista Note',
+      description: 'Vista tabellare completa di tutte le note tecniche con ricerca',
+      icon: 'list_alt',
+      route: '/note-list',
+      color: 'from-teal-500 to-teal-600',
+      gradient: 'bg-gradient-to-br from-teal-500 to-teal-600',
+      isActive: true
+    }, */
+    /* {
+      id: 'config',
+      title: 'Configurazione',
+      description: 'Impostazioni dell\'applicazione e configurazione degli ambienti',
+      icon: 'settings',
+      route: '/config',
+      color: 'from-gray-500 to-gray-600',
+      gradient: 'bg-gradient-to-br from-gray-500 to-gray-600',
+      isActive: true
+    } */
+  ];
 
   ngOnInit(): void {
-    this.loadDashboardData();
+    this.loadModuleStatistics();
   }
 
-  loadDashboardData(): void {
-    this.webLinksService.getSummary().subscribe({
-      next: (summary) => {
-        this.summary = summary;
-        this.setupDashboardCards(summary);
-        this.loading = false;
-      },
-      error: (error) => {
-        console.error('Error loading dashboard data:', error);
-        this.loading = false;
-        // Setup default cards even on error
-        this.setupDefaultCards();
-      }
-    });
+  private async loadModuleStatistics(): Promise<void> {
+    this.loading = true;
+
+    try {
+      // Carica le statistiche in parallelo
+      const [webLinksStats, notesStats] = await Promise.all([
+        this.loadWebLinksStats(),
+        this.loadNotesStats()
+      ]);
+
+      // Combina le statistiche con la configurazione base
+      this.moduleCards = this.baseModules.map(module => {
+        let count = 0;
+        let lastUsed: Date | undefined;
+
+        switch (module['id']) {
+          case 'weblinks':
+            count = webLinksStats.totalCount;
+            lastUsed = webLinksStats.lastUsed;
+            break;
+          case 'notes':
+            count = notesStats.totalCount;
+            lastUsed = notesStats.lastUsed;
+            break;
+          /* case 'weblink-list':
+            count = webLinksStats.totalCount;
+            lastUsed = webLinksStats.lastUsed;
+            break;
+          case 'note-list':
+            count = notesStats.totalCount;
+            lastUsed = notesStats.lastUsed;
+            break; */
+          default:
+            count = Math.floor(Math.random() * 50); // Dato temporaneo per altri moduli
+        }
+
+        return {
+          ...module,
+          count,
+          lastUsed
+        };
+      });
+
+      // Ordina per count decrescente
+      this.moduleCards.sort((a, b) => b.count - a.count);
+
+    } catch (error) {
+      console.error('Errore nel caricamento delle statistiche:', error);
+      // In caso di errore, usa i dati base senza statistiche
+      this.moduleCards = this.baseModules.map(module => ({
+        ...module,
+        count: 0
+      }));
+    } finally {
+      this.loading = false;
+    }
   }
 
-  setupDashboardCards(summary: LinksSummary): void {
-    this.dashboardCards = [
-      {
-        title: 'Web Links',
-        subtitle: 'Gestione completa',
-        icon: 'link',
-        count: this.getTotalLinksCount(summary),
-        route: '/weblinks',
-        color: 'border-blue-500',
-        description: 'Visualizza e gestisci tutti i tuoi link web'
-      },
-      {
-        title: 'Più Utilizzati',
-        subtitle: 'Top performers',
-        icon: 'trending_up',
-        count: 0,
-        route: '/weblinks?tab=most-used',
-        color: 'border-green-500',
-        description: 'I link con il maggior numero di accessi'
-      },
-      {
-        title: 'Preferiti',
-        subtitle: 'I tuoi favoriti',
-        icon: 'favorite',
-        count: 0,
-        route: '/weblinks?tab=favorites',
-        color: 'border-red-500',
-        description: 'Accesso rapido ai link preferiti'
-      },
-      {
-        title: 'Recenti',
-        subtitle: 'Attività recente',
-        icon: 'schedule',
-        count: 0,
-        route: '/weblinks?tab=recent',
-        color: 'border-purple-500',
-        description: 'Gli ultimi link che hai visitato'
-      }
-    ];
+  private async loadWebLinksStats(): Promise<{ totalCount: number, lastUsed?: Date }> {
+    try {
+      const [allLinks, recentLinks] = await Promise.all([
+        this.webLinksService.getAll().toPromise(),
+        this.webLinksService.getRecent(1).toPromise()
+      ]);
+
+      return {
+        totalCount: allLinks?.length || 0,
+        lastUsed: recentLinks?.[0]?.lastUsed ? new Date(recentLinks[0].lastUsed) : undefined
+      };
+    } catch (error) {
+      console.error('Errore nel caricamento statistiche WebLinks:', error);
+      return { totalCount: 0 };
+    }
   }
 
-  getTotalLinksCount(summary: LinksSummary): number {
-    const mostUsedCount = summary.mostUsed?.length || 0;
-    const favoritesCount = summary.favorites?.length || 0;
-    const recentCount = summary.recentlyUsed?.length || 0;
-    return Math.max(mostUsedCount, favoritesCount, recentCount);
+  private async loadNotesStats(): Promise<{ totalCount: number, lastUsed?: Date }> {
+    try {
+      const [allNotes, recentNotes] = await Promise.all([
+        this.notesService.getAll().toPromise(),
+        this.notesService.getRecent(1).toPromise()
+      ]);
+
+      return {
+        totalCount: allNotes?.length || 0,
+        lastUsed: recentNotes?.[0]?.lastUsed ? new Date(recentNotes[0].lastUsed) : undefined
+      };
+    } catch (error) {
+      console.error('Errore nel caricamento statistiche Notes:', error);
+      return { totalCount: 0 };
+    }
   }
 
-  navigateToCard(card: DashboardCard): void {
-    this.router.navigate([card.route.split('?')[0]], {
-      queryParams: this.parseQueryParams(card.route)
-    });
+  navigateToModule(card: Card): void {
+    if (card.isActive) {
+      this.router.navigate([card.route]);
+    }
   }
 
-  parseQueryParams(route: string): any {
-    const [, queryString] = route.split('?');
-    if (!queryString) return {};
+  formatLastUsed(date?: Date): string {
+    if (!date) return 'Mai utilizzato';
 
-    const params: any = {};
-    queryString.split('&').forEach(param => {
-      const [key, value] = param.split('=');
-      params[key] = value;
-    });
-    return params;
-  }
-
-  trackByCard(index: number, card: DashboardCard): string {
-    return card.title;
-  }
-
-  getIconColor(borderColor: string): string {
-    const colorMap: { [key: string]: string } = {
-      'border-blue-500': 'text-blue-200',
-      'border-green-500': 'text-green-200',
-      'border-red-500': 'text-red-200',
-      'border-purple-500': 'text-purple-200'
-    };
-    return colorMap[borderColor] || 'text-gray-200';
-  }
-
-  getTextColor(borderColor: string): string {
-    const colorMap: { [key: string]: string } = {
-      'border-blue-500': 'text-blue-600',
-      'border-green-500': 'text-green-600',
-      'border-red-500': 'text-red-600',
-      'border-purple-500': 'text-purple-600'
-    };
-    return colorMap[borderColor] || 'text-gray-600';
-  }
-
-  formatDate(dateString: Date): string {
-    const date = new Date(dateString);
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - date.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -154,49 +222,29 @@ export default class HomeComponent {
     if (diffDays === 1) return 'Oggi';
     if (diffDays === 2) return 'Ieri';
     if (diffDays <= 7) return `${diffDays} giorni fa`;
+    if (diffDays <= 30) return `${Math.ceil(diffDays / 7)} settimane fa`;
 
-    return date.toLocaleDateString('it-IT');
+    return date.toLocaleDateString('it-IT', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
   }
 
-  setupDefaultCards(): void {
-    this.dashboardCards = [
-      {
-        title: 'Web Links',
-        subtitle: 'Gestione completa',
-        icon: 'link',
-        count: 0,
-        route: '/weblinks',
-        color: 'border-blue-500',
-        description: 'Visualizza e gestisci tutti i tuoi link web'
-      },
-      {
-        title: 'Più Utilizzati',
-        subtitle: 'Top performers',
-        icon: 'trending_up',
-        count: this.summary!.mostUsed?.length || 0,
-        route: '/weblinks?tab=most-used',
-        color: 'border-green-500',
-        description: 'I link con il maggior numero di accessi'
-      },
-      {
-        title: 'Preferiti',
-        subtitle: 'I tuoi favoriti',
-        icon: 'favorite',
-        count: this.summary!.favorites?.length || 0,
-        route: '/weblinks?tab=favorites',
-        color: 'border-red-500',
-        description: 'Accesso rapido ai link preferiti'
-      },
-      {
-        title: 'Recenti',
-        subtitle: 'Attività recente',
-        icon: 'schedule',
-        count: this.summary!.recentlyUsed?.length || 0,
-        route: '/weblinks?tab=recent',
-        color: 'border-purple-500',
-        description: 'Gli ultimi link che hai visitato'
-      }
-    ];
+  trackByCard(index: number, card: Card): string {
+    return card.id;
+  }
+
+  getTotalItems(): number {
+    return this.moduleCards.reduce((total, card) => total + card.count, 0);
+  }
+
+  getActiveModules(): number {
+    return this.moduleCards.filter(card => card.isActive && card.count > 0).length;
+  }
+
+  getCurrentTime(): Date {
+    return new Date();
   }
 
 }

@@ -1,14 +1,99 @@
-<h3>Welcome to Home!!!</h3>
-<br>
-<br>
-<!-- Welcome content di default -->
-<div class="welcome-content" *ngIf="!hasRoutes">
-    <h1>Benvenuto nella tua Webapp Modularizzata</h1>
-    <p>Struttura componenti:</p>
-    <ul>
-        <li><strong>Header:</strong> Toolbar con menu e azioni</li>
-        <li><strong>Sidebar:</strong> Menu a 2 livelli organizzato per sezioni</li>
-        <li><strong>Body:</strong> Contenuto principale con routing</li>
-        <li><strong>Footer:</strong> Informazioni e link</li>
-    </ul>
+<!-- Header della home page -->
+<div class="home-container">
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="hero-content">
+            <h1 class="hero-title">
+                Benvenuto in <span class="highlight">OIT Web</span>
+            </h1>
+            <p class="hero-subtitle">
+                La tua piattaforma centralizzata per gestire note tecniche, web links e credenziali
+            </p>
+        </div>
+
+    </div>
+
+    <!-- Quick Actions Section -->
+    <div *ngIf="!loading" class="quick-actions-section">
+        <h3 class="quick-actions-title">Azioni Rapide</h3>
+        <div class="quick-actions-grid">
+            <button mat-stroked-button class="quick-action-btn" (click)="router.navigate(['/credentials'])">
+                <mat-icon>add_moderator</mat-icon>
+                Nuova Credenziale
+            </button>
+            <button mat-stroked-button class="quick-action-btn" (click)="router.navigate(['/weblink-list'])">
+                <mat-icon>add_link</mat-icon>
+                Nuovo Link
+            </button>
+            <button mat-stroked-button class="quick-action-btn" (click)="router.navigate(['/note-list'])">
+                <mat-icon>note_add</mat-icon>
+                Nuova Nota
+            </button>
+            <!-- <button mat-stroked-button class="quick-action-btn" (click)="router.navigate(['/config'])">
+                <mat-icon>settings</mat-icon>
+                Configurazione
+            </button> -->
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-container">
+        <mat-spinner diameter="50"></mat-spinner>
+        <p class="loading-text">Caricamento moduli in corso...</p>
+    </div>
+
+    <!-- Modules Grid -->
+    <div *ngIf="!loading" class="modules-section">
+        <div class="section-header">
+            <h4 class="section-title">Link rapidi</h4><!-- 
+            <p class="section-subtitle">Accedi rapidamente ai tuoi strumenti di lavoro</p> -->
+        </div>
+
+        <div class="modules-grid">
+            <mat-card *ngFor="let card of moduleCards; trackBy: trackByCard" class="module-card"
+                [class.disabled]="!card.isActive" (click)="navigateToModule(card)" [matTooltip]="card.description">
+
+                <!-- Card Header con Gradiente -->
+                <div class="card-header" [ngClass]="card.gradient">
+                    <div class="card-icon-container">
+                        <mat-icon class="card-icon">{{ card.icon }}</mat-icon>
+                    </div>
+                    <div class="card-badge" *ngIf="card.count > 0">
+                        {{ card.count }}
+                    </div>
+                </div>
+
+                <!-- Card Content -->
+                <mat-card-content class="card-content">
+                    <h3 class="card-title">{{ card.title }}</h3>
+                    <p class="card-description">{{ card.description }}</p>
+
+                    <!-- Stats Info -->
+                    <div class="card-stats">
+                        <div class="stat-row" *ngIf="card.count > 0">
+                            <mat-icon class="stat-icon">analytics</mat-icon>
+                            <span class="stat-text">{{ card.count }} elementi</span>
+                        </div>
+                        <div class="stat-row" *ngIf="card.lastUsed">
+                            <mat-icon class="stat-icon">schedule</mat-icon>
+                            <span class="stat-text">{{ formatLastUsed(card.lastUsed) }}</span>
+                        </div>
+                    </div>
+                </mat-card-content>
+
+                <!-- Card Actions -->
+                <mat-card-actions class="card-actions">
+                    <button mat-raised-button [color]="card.isActive ? 'primary' : 'basic'" [disabled]="!card.isActive"
+                        class="action-button">
+                        <mat-icon>arrow_forward</mat-icon>
+                        Accedi
+                    </button>
+                </mat-card-actions>
+
+                <!-- Overlay per effetto hover -->
+                <div class="card-overlay"></div>
+            </mat-card>
+        </div>
+    </div>
+
 </div>
