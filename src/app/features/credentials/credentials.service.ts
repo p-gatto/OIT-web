@@ -32,6 +32,10 @@ export class CredentialsService {
     }
   }
 
+  getAll(): Observable<Credential[]> {
+    return this.http.get<Credential[]>(this.apiUrl() + '/all');
+  }
+
   getCredentials(filter: CredentialFilterDto): Observable<PaginatedResult<Credential>> {
 
     let params = new HttpParams()

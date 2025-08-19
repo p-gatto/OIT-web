@@ -12,6 +12,7 @@ import { WebLinksService } from '../weblinks/weblinks.service';
 import { NotesService } from '../notes/notes.service';
 
 import { Card } from './card.model';
+import { CredentialsService } from '../credentials/credentials.service';
 
 @Component({
   selector: 'app-home',
@@ -30,6 +31,7 @@ import { Card } from './card.model';
 export default class HomeComponent {
 
   router = inject(Router);
+  credentialsService = inject(CredentialsService);
   webLinksService = inject(WebLinksService);
   notesService = inject(NotesService);
 
@@ -119,7 +121,8 @@ export default class HomeComponent {
 
     try {
       // Carica le statistiche in parallelo
-      const [webLinksStats, notesStats] = await Promise.all([
+      const [credentialsStats, webLinksStats, notesStats] = await Promise.all([
+        this.credentialsStats(),
         this.loadWebLinksStats(),
         this.loadNotesStats()
       ]);
@@ -130,6 +133,10 @@ export default class HomeComponent {
         let lastUsed: Date | undefined;
 
         switch (module['id']) {
+          case 'credentials':
+            count = credentialsStats.totalCount;
+            lastUsed = credentialsStats.lastUsed;
+            break;
           case 'weblinks':
             count = webLinksStats.totalCount;
             lastUsed = webLinksStats.lastUsed;
@@ -169,6 +176,25 @@ export default class HomeComponent {
       }));
     } finally {
       this.loading = false;
+    }
+  }
+
+  private async credentialsStats(): Promise<{ totalCount: number, lastUsed?: Date }> {
+    try {
+      const [allLinks, recentLinks] = await Promise.all([
+        this.credentialsService.getAll().toPromise(),
+        undefined
+        /* this.webLinksService.getRecent(1).toPromise() */
+      ]);
+
+      return {
+        totalCount: allLinks?.length || 0,
+        lastUsed: undefined
+        /* lastUsed: recentLinks?.[0]?.lastUsed ? new Date(recentLinks[0].lastUsed) : undefined */
+      };
+    } catch (error) {
+      console.error('Errore nel caricamento statistiche WebLinks:', error);
+      return { totalCount: 0 };
     }
   }
 
