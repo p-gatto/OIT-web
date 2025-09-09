@@ -14,7 +14,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTooltipModule } from "@angular/material/tooltip";
 
+import { Credential as CredentialModel } from "./models/credential.model";
 import { CredentialFilterDto } from './dtos/credential-filter-dto.model';
 import { CredentialsService } from './credentials.service';
 import { CredentialDialogComponent } from './dialogs/credential-dialog/credential-dialog.component';
@@ -33,7 +35,8 @@ import { ConfirmDialogComponent } from './dialogs/confirm-dialog/confirm-dialog.
     MatPaginatorModule,
     MatSortModule,
     MatIconModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatTooltipModule
   ],
   templateUrl: './credentials.component.html',
   styleUrl: './credentials.component.css'
@@ -45,7 +48,8 @@ export default class CredentialsComponent implements OnInit {
   snackBar = inject(MatSnackBar);
 
   dataSource = new MatTableDataSource<Credential>([]);
-  displayedColumns: string[] = ['name', 'username', 'email', 'url', 'active', 'expired', 'actions'];
+  // Array aggiornato con le nuove colonne 'description' e 'password'
+  displayedColumns: string[] = ['name', 'description', 'username', 'password', 'email', 'url', 'active', 'expired', 'actions'];
   totalCount = 0;
   loading = false;
 
@@ -109,7 +113,7 @@ export default class CredentialsComponent implements OnInit {
     this.searchSubject.next(filterValue.trim().toLowerCase());
   }
 
-  openDialog(credential?: Credential): void {
+  openDialog(credential?: CredentialModel): void {
     const dialogRef = this.dialog.open(CredentialDialogComponent, {
       width: '95vw',           // 95% della larghezza del viewport
       maxWidth: '1400px',      // Larghezza massima in pixel
@@ -156,11 +160,6 @@ export default class CredentialsComponent implements OnInit {
   }
 
   deleteCredential(id: number): void {
-    /* const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      width: '400px',
-      data: { title: 'Conferma', message: 'Sei sicuro di voler eliminare questa credenziale?' }
-    }); */
-
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '450px',
       data: {
@@ -183,6 +182,189 @@ export default class CredentialsComponent implements OnInit {
         });
       }
     });
+  }
+
+  /**
+   * Nuovo metodo per copiare la password negli appunti
+   */
+  copyToClipboard(password: string, event: Event): void {
+    event.stopPropagation(); // Evita che si propaghi l'evento al parent
+
+    if (password) {
+      navigator.clipboard.writeText(password).then(() => {
+        this.showSuccessMessage('Password copiata negli appunti');
+      }).catch(err => {
+        console.error('Errore nella copia della password:', err);
+        this.showErrorMessage('Errore durante la copia della password');
+      });
+    } else {
+      this.showInfoMessage('Nessuna password da copiare');
+    }
+  }
+
+  /**
+   * Metodo per duplicare una credenziale
+   */
+  duplicateCredential(credential: CredentialModel): void {
+    // Crea una copia della credenziale senza l'ID e con nome modificato
+    const duplicatedCredential = {
+      ...credential,
+      id: undefined, // Rimuove l'ID per creare un nuovo record
+      name: `${credential.name} (Copia)`, // Modifica il nome aggiungendo "(Copia)"
+      created: undefined, // Rimuove le date che verranno generate automaticamente
+      modified: undefined
+    };
+
+    // Apre il dialog in modalità "creazione" con i dati duplicati
+    const dialogRef = this.dialog.open(CredentialDialogComponent, {
+      width: '95vw',
+      maxWidth: '1400px',
+      height: '90vh',
+      maxHeight: '900px',
+      panelClass: 'credential-dialog-container',
+      disableClose: false,
+      hasBackdrop: true,
+      backdropClass: 'credential-dialog-backdrop',
+      data: duplicatedCredential // Passa i dati duplicati
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        // Crea la nuova credenziale
+        this.credentialsService.createCredential(result).subscribe({
+          next: () => {
+            this.showSuccessMessage(`Credenziale "${result.name}" duplicata con successo!`);
+            this.loadCredentials();
+          },
+          error: (error) => {
+            console.error('Error duplicating credential', error);
+            this.showErrorMessage('Errore durante la duplicazione della credenziale');
+          }
+        });
+      }
+    });
+  }
+
+  /**
+   * Metodo rinominato per copiare la credenziale negli appunti (per distinguerla dalla duplicazione)
+   */
+  copyCredentialToClipboard(credential: CredentialModel): void {
+    const credentialText = this.formatCredentialForCopy(credential);
+
+    navigator.clipboard.writeText(credentialText).then(() => {
+      this.showSuccessMessage(`Credenziale "${credential.name}" copiata negli appunti`);
+    }).catch(err => {
+      console.error('Errore nella copia della credenziale:', err);
+      this.showErrorMessage('Errore durante la copia della credenziale');
+    });
+  }
+
+  /**
+   * Formatta la credenziale per la copia negli appunti
+   */
+  private formatCredentialForCopy(credential: CredentialModel): string {
+    const lines: string[] = [];
+
+    lines.push(`Nome: ${credential.name}`);
+
+    if (credential.description) {
+      lines.push(`Descrizione: ${credential.description}`);
+    }
+
+    lines.push(`Username: ${credential.username}`);
+    lines.push(`Password: ${credential.password}`);
+
+    if (credential.email) {
+      lines.push(`Email: ${credential.email}`);
+    }
+
+    if (credential.url) {
+      lines.push(`URL: ${credential.url}`);
+    }
+
+    if (credential.profile) {
+      lines.push(`Profile: ${credential.profile}`);
+    }
+
+    // Aggiungi altre informazioni se presenti
+    if (credential.subject_ID) {
+      lines.push(`Subject ID: ${credential.subject_ID}`);
+    }
+
+    if (credential.nickname) {
+      lines.push(`Nickname: ${credential.nickname}`);
+    }
+
+    if (credential.operativity) {
+      lines.push(`Operatività: ${credential.operativity}`);
+    }
+
+    if (credential.area) {
+      lines.push(`Area: ${credential.area}`);
+    }
+
+    if (credential.section) {
+      lines.push(`Sezione: ${credential.section}`);
+    }
+
+    if (credential.user_Admin) {
+      lines.push(`User Admin: ${credential.user_Admin}`);
+    }
+
+    // Informazioni bancarie
+    if (credential.iban) {
+      lines.push(`IBAN: ${credential.iban}`);
+    }
+
+    if (credential.numero_Carta) {
+      lines.push(`Numero Carta: ${credential.numero_Carta}`);
+    }
+
+    if (credential.data_Scadenza) {
+      lines.push(`Data Scadenza: ${credential.data_Scadenza}`);
+    }
+
+    // PIN vari
+    if (credential.pin_App) {
+      lines.push(`PIN App: ${credential.pin_App}`);
+    }
+
+    if (credential.pin_Carta) {
+      lines.push(`PIN Carta: ${credential.pin_Carta}`);
+    }
+
+    if (credential.pin) {
+      lines.push(`PIN: ${credential.pin}`);
+    }
+
+    // Informazioni macchina
+    if (credential.machine_IP) {
+      lines.push(`IP Macchina: ${credential.machine_IP}`);
+    }
+
+    if (credential.machine_Name) {
+      lines.push(`Nome Macchina: ${credential.machine_Name}`);
+    }
+
+    if (credential.machine_Type) {
+      lines.push(`Tipo Macchina: ${credential.machine_Type}`);
+    }
+
+    // Note
+    if (credential.note) {
+      lines.push(`Note: ${credential.note}`);
+    }
+
+    // Data di scadenza
+    if (credential.expired_Date) {
+      lines.push(`Data Scadenza: ${new Date(credential.expired_Date).toLocaleDateString('it-IT')}`);
+    }
+
+    // Stato
+    lines.push(`Attivo: ${credential.active ? 'Sì' : 'No'}`);
+    lines.push(`Scaduto: ${credential.expired ? 'Sì' : 'No'}`);
+
+    return lines.join('\n');
   }
 
   /**
