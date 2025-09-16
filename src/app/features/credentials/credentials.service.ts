@@ -11,6 +11,7 @@ import { CredentialCreateDto } from './dtos/credential-create-dto.model';
 import { CredentialUpdateDto } from './dtos/credential-update-dto.model';
 
 import { Credential as CredentialOIT } from '../credentials/models/credential.model';
+import { CredentialStats } from './models/credential-stats.model';
 
 @Injectable({
   providedIn: 'root'
@@ -22,17 +23,45 @@ export class CredentialsService {
 
   apiUrl = signal('https://localhost');
 
-  //private apiUrl = `${this.configService.config$}/api/credentials`;
-
   constructor() {
     // Se la configurazione è già caricata
     const config = this.configService.getConfig();
-    //console.log('Get config: ', config);
     if (config) {
       this.apiUrl.set(`${config.credentialsApiBaseUrl}/api/credentials`);
-      //console.log('Get apiUrl: ', this.apiUrl());
     }
   }
+
+  // NUOVI METODI PER LE STATISTICHE
+
+  /**
+   * Ottiene le credenziali più utilizzate
+   */
+  getMostUsed(count: number = 10): Observable<CredentialOIT[]> {
+    return this.http.get<CredentialOIT[]>(`${this.apiUrl()}/most-used?count=${count}`);
+  }
+
+  /**
+   * Ottiene le credenziali utilizzate più di recente
+   */
+  getRecent(count: number = 10): Observable<CredentialOIT[]> {
+    return this.http.get<CredentialOIT[]>(`${this.apiUrl()}/recent?count=${count}`);
+  }
+
+  /**
+   * Incrementa il contatore di utilizzo di una credenziale
+   */
+  incrementUsage(id: number): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl()}/${id}/increment-usage`, {});
+  }
+
+  /**
+   * Ottiene le statistiche generali delle credenziali
+   */
+  getStats(): Observable<CredentialStats> {
+    return this.http.get<CredentialStats>(`${this.apiUrl()}/stats`);
+  }
+
+  // METODI ESISTENTI (invariati)
 
   getAll(): Observable<CredentialOIT[]> {
     return this.http.get<CredentialOIT[]>(this.apiUrl() + '/all');
@@ -76,4 +105,5 @@ export class CredentialsService {
   deleteCredential(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl()}/${id}`);
   }
+
 }

@@ -47,7 +47,7 @@ export default class CredentialsComponent implements OnInit {
   dialog = inject(MatDialog);
   snackBar = inject(MatSnackBar);
 
-  dataSource = new MatTableDataSource<Credential>([]);
+  dataSource = new MatTableDataSource<CredentialModel>([]);
   // Array aggiornato con le nuove colonne 'description' e 'password'
   displayedColumns: string[] = ['name', 'description', 'username', 'password', 'email', 'url', 'active', 'expired', 'actions'];
   totalCount = 0;

@@ -7,12 +7,17 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDividerModule } from "@angular/material/divider";
 
 import { WebLinksService } from '../weblinks/weblinks.service';
 import { NotesService } from '../notes/notes.service';
 
 import { Card } from './card.model';
 import { CredentialsService } from '../credentials/credentials.service';
+
+import { Credential as CredentialOIT } from '../credentials/models/credential.model';
+import { WebLink } from '../weblinks/weblink.models';
+import { Note } from '../notes/note.models';
 
 @Component({
   selector: 'app-home',
@@ -23,7 +28,8 @@ import { CredentialsService } from '../credentials/credentials.service';
     MatIconModule,
     MatButtonModule,
     MatProgressSpinnerModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatDividerModule
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css'
@@ -36,211 +42,122 @@ export default class HomeComponent {
   notesService = inject(NotesService);
 
   loading = true;
-  moduleCards: Card[] = [];
 
-  // Configurazione base dei moduli
-  private baseModules: Omit<Card, 'count' | 'lastUsed'>[] = [
-    {
-      id: 'weblinks',
-      title: 'Web Links',
-      description: 'Gestisci e organizza i tuoi link web preferiti con categorie e statistiche d\'uso',
-      icon: 'link',
-      route: '/weblinks',
-      color: 'from-blue-500 to-blue-600',
-      gradient: 'bg-gradient-to-br from-blue-500 to-blue-600',
-      isActive: true
-    },
-    {
-      id: 'notes',
-      title: 'Note Tecniche',
-      description: 'Organizza comandi, procedure e note tecniche per tipo e categoria',
-      icon: 'note_alt',
-      route: '/notes',
-      color: 'from-green-500 to-green-600',
-      gradient: 'bg-gradient-to-br from-green-500 to-green-600',
-      isActive: true
-    },
-    {
-      id: 'credentials',
-      title: 'Credenziali',
-      description: 'Gestione sicura delle credenziali e informazioni di accesso',
-      icon: 'vpn_key',
-      route: '/credentials',
-      color: 'from-purple-500 to-purple-600',
-      gradient: 'bg-gradient-to-br from-purple-500 to-purple-600',
-      isActive: true
-    },
-    /*  {
-       id: 'menu-management',
-       title: 'Gestione Menu',
-       description: 'Configura la struttura di navigazione e i menu dell\'applicazione',
-       icon: 'menu',
-       route: '/menu',
-       color: 'from-orange-500 to-orange-600',
-       gradient: 'bg-gradient-to-br from-orange-500 to-orange-600',
-       isActive: true
-     }, */
-    /* {
-      id: 'weblink-list',
-      title: 'Lista Web Links',
-      description: 'Vista tabellare completa di tutti i web links con filtri avanzati',
-      icon: 'list',
-      route: '/weblink-list',
-      color: 'from-cyan-500 to-cyan-600',
-      gradient: 'bg-gradient-to-br from-cyan-500 to-cyan-600',
-      isActive: true
-    }, */
-    /* {
-      id: 'note-list',
-      title: 'Lista Note',
-      description: 'Vista tabellare completa di tutte le note tecniche con ricerca',
-      icon: 'list_alt',
-      route: '/note-list',
-      color: 'from-teal-500 to-teal-600',
-      gradient: 'bg-gradient-to-br from-teal-500 to-teal-600',
-      isActive: true
-    }, */
-    /* {
-      id: 'config',
-      title: 'Configurazione',
-      description: 'Impostazioni dell\'applicazione e configurazione degli ambienti',
-      icon: 'settings',
-      route: '/config',
-      color: 'from-gray-500 to-gray-600',
-      gradient: 'bg-gradient-to-br from-gray-500 to-gray-600',
-      isActive: true
-    } */
-  ];
+  // Dati per le tre sezioni
+  mostUsedCredentials: CredentialOIT[] = [];
+  recentCredentials: CredentialOIT[] = [];
+
+  mostUsedWeblinks: WebLink[] = [];
+  recentWeblinks: WebLink[] = [];
+
+  mostUsedNotes: Note[] = [];
+  recentNotes: Note[] = [];
 
   ngOnInit(): void {
-    this.loadModuleStatistics();
+    this.loadAllData();
   }
 
-  private async loadModuleStatistics(): Promise<void> {
+  private async loadAllData(): Promise<void> {
     this.loading = true;
 
     try {
-      // Carica le statistiche in parallelo
-      const [credentialsStats, webLinksStats, notesStats] = await Promise.all([
-        this.credentialsStats(),
-        this.loadWebLinksStats(),
-        this.loadNotesStats()
+      // Carica tutti i dati in parallelo
+      const [
+        mostUsedCreds, recentCreds,
+        mostUsedLinks, recentLinks,
+        mostUsedNotesData, recentNotesData
+      ] = await Promise.all([
+        // Credentials
+        this.credentialsService.getMostUsed(10).toPromise(),
+        this.credentialsService.getRecent(10).toPromise(),
+
+        // WebLinks
+        this.webLinksService.getMostUsed(10).toPromise(),
+        this.webLinksService.getRecent(10).toPromise(),
+
+        // Notes
+        this.notesService.getMostUsed(10).toPromise(),
+        this.notesService.getRecent(10).toPromise()
       ]);
 
-      // Combina le statistiche con la configurazione base
-      this.moduleCards = this.baseModules.map(module => {
-        let count = 0;
-        let lastUsed: Date | undefined;
+      // Assegna i risultati
+      this.mostUsedCredentials = mostUsedCreds || [];
+      this.recentCredentials = recentCreds || [];
 
-        switch (module['id']) {
-          case 'credentials':
-            count = credentialsStats.totalCount;
-            lastUsed = credentialsStats.lastUsed;
-            break;
-          case 'weblinks':
-            count = webLinksStats.totalCount;
-            lastUsed = webLinksStats.lastUsed;
-            break;
-          case 'notes':
-            count = notesStats.totalCount;
-            lastUsed = notesStats.lastUsed;
-            break;
-          /* case 'weblink-list':
-            count = webLinksStats.totalCount;
-            lastUsed = webLinksStats.lastUsed;
-            break;
-          case 'note-list':
-            count = notesStats.totalCount;
-            lastUsed = notesStats.lastUsed;
-            break; */
-          default:
-            count = Math.floor(Math.random() * 50); // Dato temporaneo per altri moduli
-        }
+      this.mostUsedWeblinks = mostUsedLinks || [];
+      this.recentWeblinks = recentLinks || [];
 
-        return {
-          ...module,
-          count,
-          lastUsed
-        };
-      });
-
-      // Ordina per count decrescente
-      this.moduleCards.sort((a, b) => b.count - a.count);
+      this.mostUsedNotes = mostUsedNotesData || [];
+      this.recentNotes = recentNotesData || [];
 
     } catch (error) {
-      console.error('Errore nel caricamento delle statistiche:', error);
-      // In caso di errore, usa i dati base senza statistiche
-      this.moduleCards = this.baseModules.map(module => ({
-        ...module,
-        count: 0
-      }));
+      console.error('Errore nel caricamento dei dati:', error);
     } finally {
       this.loading = false;
     }
   }
 
-  private async credentialsStats(): Promise<{ totalCount: number, lastUsed?: Date }> {
-    try {
-      const [allLinks, recentLinks] = await Promise.all([
-        this.credentialsService.getAll().toPromise(),
-        undefined
-        /* this.webLinksService.getRecent(1).toPromise() */
-      ]);
-
-      return {
-        totalCount: allLinks?.length || 0,
-        lastUsed: undefined
-        /* lastUsed: recentLinks?.[0]?.lastUsed ? new Date(recentLinks[0].lastUsed) : undefined */
-      };
-    } catch (error) {
-      console.error('Errore nel caricamento statistiche WebLinks:', error);
-      return { totalCount: 0 };
-    }
+  // Metodi di navigazione
+  navigateToCredentials(): void {
+    this.router.navigate(['/credentials']);
   }
 
-  private async loadWebLinksStats(): Promise<{ totalCount: number, lastUsed?: Date }> {
-    try {
-      const [allLinks, recentLinks] = await Promise.all([
-        this.webLinksService.getAll().toPromise(),
-        this.webLinksService.getRecent(1).toPromise()
-      ]);
-
-      return {
-        totalCount: allLinks?.length || 0,
-        lastUsed: recentLinks?.[0]?.lastUsed ? new Date(recentLinks[0].lastUsed) : undefined
-      };
-    } catch (error) {
-      console.error('Errore nel caricamento statistiche WebLinks:', error);
-      return { totalCount: 0 };
-    }
+  navigateToWeblinks(): void {
+    this.router.navigate(['/weblinks']);
   }
 
-  private async loadNotesStats(): Promise<{ totalCount: number, lastUsed?: Date }> {
-    try {
-      const [allNotes, recentNotes] = await Promise.all([
-        this.notesService.getAll().toPromise(),
-        this.notesService.getRecent(1).toPromise()
-      ]);
-
-      return {
-        totalCount: allNotes?.length || 0,
-        lastUsed: recentNotes?.[0]?.lastUsed ? new Date(recentNotes[0].lastUsed) : undefined
-      };
-    } catch (error) {
-      console.error('Errore nel caricamento statistiche Notes:', error);
-      return { totalCount: 0 };
-    }
+  navigateToNotes(): void {
+    this.router.navigate(['/notes']);
   }
 
-  navigateToModule(card: Card): void {
-    if (card.isActive) {
-      this.router.navigate([card.route]);
-    }
+  // Metodi per aprire/utilizzare gli elementi
+  openCredential(credential: CredentialOIT): void {
+    // Incrementa il contatore di utilizzo
+    this.credentialsService.incrementUsage(credential.id).subscribe({
+      next: () => {
+        console.log('Utilizzo credenziale incrementato');
+        // Opzionalmente ricarica i dati per vedere l'aggiornamento
+        // this.loadAllData();
+      },
+      error: (error) => console.error('Errore incremento utilizzo:', error)
+    });
+
+    // Qui potresti aprire un dialog con i dettagli della credenziale
+    // o copiare negli appunti
+    console.log('Apertura credenziale:', credential.name);
   }
 
-  formatLastUsed(date?: Date): string {
-    if (!date) return 'Mai utilizzato';
+  openWeblink(weblink: WebLink): void {
+    // Incrementa il contatore di utilizzo
+    this.webLinksService.incrementUsage(weblink.id).subscribe({
+      next: () => {
+        console.log('Utilizzo weblink incrementato');
+      },
+      error: (error) => console.error('Errore incremento utilizzo:', error)
+    });
 
+    // Apri il link in una nuova tab
+    window.open(weblink.url, '_blank');
+  }
+
+  openNote(note: Note): void {
+    // Incrementa il contatore di utilizzo
+    this.notesService.incrementUsage(note.id).subscribe({
+      next: () => {
+        console.log('Utilizzo nota incrementato');
+      },
+      error: (error) => console.error('Errore incremento utilizzo:', error)
+    });
+
+    // Qui potresti aprire un dialog con il contenuto della nota
+    console.log('Apertura nota:', note.name);
+  }
+
+  // Metodi di utilità per la formattazione
+  formatDate(dateString?: Date): string {
+    if (!dateString) return 'Mai utilizzato';
+
+    const date = new Date(dateString);
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - date.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -257,20 +174,17 @@ export default class HomeComponent {
     });
   }
 
-  trackByCard(index: number, card: Card): string {
-    return card.id;
+  // TrackBy functions per migliorare le performance
+  trackByCredential(index: number, credential: CredentialOIT): number {
+    return credential.id;
   }
 
-  getTotalItems(): number {
-    return this.moduleCards.reduce((total, card) => total + card.count, 0);
+  trackByWeblink(index: number, weblink: WebLink): number {
+    return weblink.id;
   }
 
-  getActiveModules(): number {
-    return this.moduleCards.filter(card => card.isActive && card.count > 0).length;
-  }
-
-  getCurrentTime(): Date {
-    return new Date();
+  trackByNote(index: number, note: Note): number {
+    return note.id;
   }
 
 }

@@ -38,6 +38,8 @@ export interface Credential {
     machine_Name: string;
     machine_Type: string;
     numero_Cliente: string;
+    usageCount: number;
+    lastUsed?: Date;
     note: string;
     expired_Date: Date;
     expired: boolean;
