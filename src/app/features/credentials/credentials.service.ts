@@ -1,7 +1,7 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 
-import { Observable } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 
 import { ConfigService } from '../../core/config/config.service';
 
@@ -12,6 +12,7 @@ import { CredentialUpdateDto } from './dtos/credential-update-dto.model';
 
 import { Credential as CredentialOIT } from '../credentials/models/credential.model';
 import { CredentialStats } from './models/credential-stats.model';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Injectable({
   providedIn: 'root'
@@ -24,34 +25,70 @@ export class CredentialsService {
   apiUrl = signal('https://localhost');
 
   constructor() {
+    // Sottoscrizione ai cambiamenti della configurazione
+    this.configService.config$.pipe(
+      takeUntilDestroyed()
+    ).subscribe(config => {
+      if (config) {
+        this.apiUrl.set(`${config.credentialsApiBaseUrl}/api/credentials`);
+        console.log('CredentialsService - API URL aggiornato:', this.apiUrl());
+      }
+    });
+
     // Se la configurazione è già caricata
     const config = this.configService.getConfig();
     if (config) {
       this.apiUrl.set(`${config.credentialsApiBaseUrl}/api/credentials`);
+      console.log('CredentialsService - API URL inizializzato:', this.apiUrl());
     }
   }
 
-  // NUOVI METODI PER LE STATISTICHE
+  // METODI PER LE STATISTICHE
 
   /**
    * Ottiene le credenziali più utilizzate
    */
   getMostUsed(count: number = 10): Observable<CredentialOIT[]> {
-    return this.http.get<CredentialOIT[]>(`${this.apiUrl()}/most-used?count=${count}`);
+    console.log(`Chiamata getMostUsed per ${count} elementi - URL: ${this.apiUrl()}/most-used`);
+    return this.http.get<CredentialOIT[]>(`${this.apiUrl()}/most-used?count=${count}`).pipe(
+      tap(result => console.log('getMostUsed - Ricevuti:', result.length, 'elementi'))
+    );
   }
 
   /**
    * Ottiene le credenziali utilizzate più di recente
    */
   getRecent(count: number = 10): Observable<CredentialOIT[]> {
-    return this.http.get<CredentialOIT[]>(`${this.apiUrl()}/recent?count=${count}`);
+    console.log(`Chiamata getRecent per ${count} elementi - URL: ${this.apiUrl()}/recent`);
+    return this.http.get<CredentialOIT[]>(`${this.apiUrl()}/recent?count=${count}`).pipe(
+      tap(result => console.log('getRecent - Ricevuti:', result.length, 'elementi'))
+    );
   }
 
   /**
    * Incrementa il contatore di utilizzo di una credenziale
+   * QUESTO È IL METODO CRITICO CHE DEVE FUNZIONARE
    */
   incrementUsage(id: number): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl()}/${id}/increment-usage`, {});
+    const url = `${this.apiUrl()}/${id}/increment-usage`;
+    console.log(`🔄 Incremento utilizzo credenziale ID: ${id} - URL: ${url}`);
+
+    return this.http.post<void>(url, {}).pipe(
+      tap({
+        next: () => {
+          console.log(`✅ Utilizzo incrementato con successo per credenziale ID: ${id}`);
+        },
+        error: (error) => {
+          console.error(`❌ Errore nell'incremento utilizzo per credenziale ID: ${id}`, error);
+          console.error('Dettagli errore:', {
+            status: error.status,
+            statusText: error.statusText,
+            message: error.message,
+            url: url
+          });
+        }
+      })
+    );
   }
 
   /**
@@ -61,7 +98,7 @@ export class CredentialsService {
     return this.http.get<CredentialStats>(`${this.apiUrl()}/stats`);
   }
 
-  // METODI ESISTENTI (invariati)
+  // METODI ESISTENTI (CRUD)
 
   getAll(): Observable<CredentialOIT[]> {
     return this.http.get<CredentialOIT[]>(this.apiUrl() + '/all');

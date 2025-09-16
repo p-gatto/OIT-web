@@ -2,7 +2,7 @@
 <Project>
   <PropertyGroup>
     <PackageJsonName Condition="$(PackageJsonName) == ''">oit.web</PackageJsonName>
-    <PackageJsonVersion Condition="$(PackageJsonVersion) == ''">0.7.0</PackageJsonVersion>
+    <PackageJsonVersion Condition="$(PackageJsonVersion) == ''">0.6.6</PackageJsonVersion>
     <PackageJsonScriptsNg Condition="$(PackageJsonScriptsNg) == ''">ng</PackageJsonScriptsNg>
     <PackageJsonScriptsStart Condition="$(PackageJsonScriptsStart) == ''">ng serve</PackageJsonScriptsStart>
     <PackageJsonScriptsBuild Condition="$(PackageJsonScriptsBuild) == ''">ng build</PackageJsonScriptsBuild>

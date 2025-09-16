@@ -185,20 +185,97 @@ export default class CredentialsComponent implements OnInit {
   }
 
   /**
-   * Nuovo metodo per copiare la password negli appunti
-   */
-  copyToClipboard(password: string, event: Event): void {
+ * Nuovo metodo per copiare la password negli appunti con incremento utilizzo
+ */
+  copyToClipboard(password: string, event: Event, credential?: CredentialModel): void {
     event.stopPropagation(); // Evita che si propaghi l'evento al parent
 
     if (password) {
       navigator.clipboard.writeText(password).then(() => {
         this.showSuccessMessage('Password copiata negli appunti');
+
+        // SE viene passata la credenziale completa, incrementa l'utilizzo
+        if (credential && credential.id) {
+          console.log('🔄 Incremento utilizzo per credenziale:', credential.name);
+
+          this.credentialsService.incrementUsage(credential.id).subscribe({
+            next: () => {
+              console.log('✅ Utilizzo incrementato con successo');
+              // Ricarica i dati per mostrare l'aggiornamento
+              this.loadCredentials();
+            },
+            error: (error) => {
+              console.error('❌ Errore incremento utilizzo:', error);
+              // Non mostrare errore all'utente per non compromettere l'UX
+              // La copia è comunque avvenuta con successo
+            }
+          });
+        }
       }).catch(err => {
         console.error('Errore nella copia della password:', err);
         this.showErrorMessage('Errore durante la copia della password');
       });
     } else {
       this.showInfoMessage('Nessuna password da copiare');
+    }
+  }
+
+  /**
+   * Metodo alternativo per incrementare l'utilizzo quando si copia una password
+   * dal componente home o da altri componenti
+   */
+  copyPasswordAndIncrementUsage(credential: CredentialModel, fieldName: string = 'password'): void {
+    const password = this.getPasswordField(credential, fieldName);
+
+    if (password) {
+      navigator.clipboard.writeText(password).then(() => {
+        this.showSuccessMessage(`${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)} copiata negli appunti`);
+
+        // Incrementa sempre l'utilizzo quando si copia una password
+        this.credentialsService.incrementUsage(credential.id).subscribe({
+          next: () => {
+            console.log('✅ Utilizzo incrementato per:', credential.name);
+            // Ricarica i dati se necessario
+            this.loadCredentials();
+          },
+          error: (error) => {
+            console.error('❌ Errore incremento utilizzo:', error);
+          }
+        });
+      }).catch(err => {
+        console.error('Errore nella copia:', err);
+        this.showErrorMessage('Errore durante la copia');
+      });
+    } else {
+      this.showInfoMessage(`Nessuna ${fieldName} da copiare`);
+    }
+  }
+
+  /**
+   * Metodo helper per ottenere il campo password specifico
+   */
+  private getPasswordField(credential: CredentialModel, fieldName: string): string {
+    switch (fieldName.toLowerCase()) {
+      case 'password':
+        return credential.password;
+      case 'password_admin':
+        return credential.password_Admin || '';
+      case 'password_first':
+        return credential.password_First || '';
+      case 'password_3d_secure':
+        return credential.password_3D_Secure || '';
+      case 'password_dispositiva':
+        return credential.password_Dispositiva || '';
+      case 'pin':
+        return credential.pin || '';
+      case 'pin_app':
+        return credential.pin_App || '';
+      case 'pin_carta':
+        return credential.pin_Carta || '';
+      case 'puk':
+        return credential.puk || '';
+      default:
+        return credential.password;
     }
   }
 
