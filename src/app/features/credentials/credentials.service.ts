@@ -10,6 +10,8 @@ import { CredentialFilterDto } from './dtos/credential-filter-dto.model';
 import { CredentialCreateDto } from './dtos/credential-create-dto.model';
 import { CredentialUpdateDto } from './dtos/credential-update-dto.model';
 
+import { Credential as CredentialOIT } from '../credentials/models/credential.model';
+
 @Injectable({
   providedIn: 'root'
 })
@@ -32,11 +34,11 @@ export class CredentialsService {
     }
   }
 
-  getAll(): Observable<Credential[]> {
-    return this.http.get<Credential[]>(this.apiUrl() + '/all');
+  getAll(): Observable<CredentialOIT[]> {
+    return this.http.get<CredentialOIT[]>(this.apiUrl() + '/all');
   }
 
-  getCredentials(filter: CredentialFilterDto): Observable<PaginatedResult<Credential>> {
+  getCredentials(filter: CredentialFilterDto): Observable<PaginatedResult<CredentialOIT>> {
 
     let params = new HttpParams()
       .set('pageIndex', filter.pageIndex.toString())
@@ -56,15 +58,15 @@ export class CredentialsService {
       params = params.set('expired', filter.expired.toString());
     }
 
-    return this.http.get<PaginatedResult<Credential>>(this.apiUrl(), { params });
+    return this.http.get<PaginatedResult<CredentialOIT>>(this.apiUrl(), { params });
   }
 
-  getCredential(id: number): Observable<Credential> {
-    return this.http.get<Credential>(`${this.apiUrl()}/${id}`);
+  getCredential(id: number): Observable<CredentialOIT> {
+    return this.http.get<CredentialOIT>(`${this.apiUrl()}/${id}`);
   }
 
-  createCredential(credential: CredentialCreateDto): Observable<Credential> {
-    return this.http.post<Credential>(this.apiUrl(), credential);
+  createCredential(credential: CredentialCreateDto): Observable<CredentialOIT> {
+    return this.http.post<CredentialOIT>(this.apiUrl(), credential);
   }
 
   updateCredential(id: number, credential: CredentialUpdateDto): Observable<void> {
