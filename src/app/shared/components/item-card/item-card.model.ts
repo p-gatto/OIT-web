@@ -10,6 +10,7 @@ export interface ItemCard {
     usageCount: number;
     lastUsed?: Date;
     username?: string; // per credentials
+    password?: string;
     url?: string; // per weblinks
     freeText?: string; // per note
     isFavorite?: boolean;

@@ -253,7 +253,8 @@ export default class HomeComponent {
       usageCount: cred.usageCount,
       lastUsed: cred.lastUsed,
       username: cred.username,
-      isFavorite: false // Le credenziali non hanno il campo isFavorite nel modello attuale
+      password: cred.password,
+      isFavorite: false
     }));
   }
 
@@ -351,10 +352,34 @@ export default class HomeComponent {
 
   // Gestione copia
   onCopyClick(text: string): void {
-    navigator.clipboard.writeText(text).then(() => {
-      this.showSnackBar('Contenuto copiato negli appunti', 'success');
+    if (text) {
+      navigator.clipboard.writeText(text).then(() => {
+        this.showSnackBar('Contenuto copiato negli appunti', 'success');
+      }).catch(err => {
+        console.error('Errore nella copia:', err);
+        this.showSnackBar('Errore durante la copia', 'error');
+      });
+    } else {
+      this.showSnackBar('Nessun contenuto da copiare', 'info');
+    }
+  }
+
+  onCredentialCopy(credential: any): void {
+    // CORRETTO: Usa credential.password direttamente
+    const credentialText = `Username: ${credential.username}\nPassword: ${credential.password}`;
+
+    navigator.clipboard.writeText(credentialText).then(() => {
+      this.showSnackBar('Username e Password copiati negli appunti', 'success');
+
+      this.credentialsService.incrementUsage(credential.id).subscribe({
+        next: () => {
+          console.log('✅ Utilizzo incrementato per:', credential.name);
+          this.refreshCredentialsData();
+        },
+        error: (error) => console.error('❌ Errore incremento utilizzo:', error)
+      });
     }).catch(err => {
-      console.error('Errore nella copia:', err);
+      console.error('Errore nella copia delle credenziali:', err);
       this.showSnackBar('Errore durante la copia', 'error');
     });
   }

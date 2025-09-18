@@ -100,7 +100,15 @@ export class ItemCardComponent {
     if (this.cardType === 'note' && this.item.freeText) {
       textToCopy = this.item.freeText;
     } else if (this.cardType === 'credential') {
-      textToCopy = this.item.description || this.item.name;
+      // PROBLEMA: Il modello ItemCard non ha il campo password!
+      // Dobbiamo modificare l'ItemCard model per includere la password
+      if (this.item.username) {
+        // Per ora, usiamo un campo password se disponibile nell'ItemCard
+        const password = (this.item as any).password || 'Password non disponibile';
+        textToCopy = `Username: ${this.item.username}\nPassword: ${password}`;
+      } else {
+        textToCopy = this.item.description || this.item.name;
+      }
     }
 
     this.copyClick.emit(textToCopy);

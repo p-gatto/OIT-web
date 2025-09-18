@@ -184,42 +184,104 @@ export default class CredentialsComponent implements OnInit {
     });
   }
 
-  /**
- * Nuovo metodo per copiare la password negli appunti con incremento utilizzo
- */
+  copyPasswordOnly(credential: CredentialModel, event: Event): void {
+    event.stopPropagation();
+
+    navigator.clipboard.writeText(credential.password).then(() => {
+      this.showSuccessMessage('Password copiata negli appunti');
+
+      this.credentialsService.incrementUsage(credential.id).subscribe({
+        next: () => {
+          console.log('✅ Utilizzo incrementato per:', credential.name);
+          this.loadCredentials();
+        },
+        error: (error) => console.error('❌ Errore incremento utilizzo:', error)
+      });
+    }).catch(err => {
+      console.error('Errore nella copia della password:', err);
+      this.showErrorMessage('Errore durante la copia della password');
+    });
+  }
+
+  copyUsernameOnly(credential: CredentialModel, event: Event): void {
+    event.stopPropagation();
+
+    navigator.clipboard.writeText(credential.username).then(() => {
+      this.showSuccessMessage('Username copiato negli appunti');
+
+      this.credentialsService.incrementUsage(credential.id).subscribe({
+        next: () => {
+          console.log('✅ Utilizzo incrementato per:', credential.name);
+          this.loadCredentials();
+        },
+        error: (error) => console.error('❌ Errore incremento utilizzo:', error)
+      });
+    }).catch(err => {
+      console.error('Errore nella copia dell\'username:', err);
+      this.showErrorMessage('Errore durante la copia dell\'username');
+    });
+  }
+
   copyToClipboard(password: string, event: Event, credential?: CredentialModel): void {
-    event.stopPropagation(); // Evita che si propaghi l'evento al parent
+    event.stopPropagation();
 
-    if (password) {
-      navigator.clipboard.writeText(password).then(() => {
-        this.showSuccessMessage('Password copiata negli appunti');
+    if (credential) {
+      // CORRETTO: Usa credential.password, non credential.description
+      const credentialText = `Username: ${credential.username}\nPassword: ${credential.password}`;
 
-        // SE viene passata la credenziale completa, incrementa l'utilizzo
-        if (credential && credential.id) {
+      navigator.clipboard.writeText(credentialText).then(() => {
+        this.showSuccessMessage('Username e Password copiati negli appunti');
+
+        if (credential.id) {
           console.log('🔄 Incremento utilizzo per credenziale:', credential.name);
 
           this.credentialsService.incrementUsage(credential.id).subscribe({
             next: () => {
               console.log('✅ Utilizzo incrementato con successo');
-              // Ricarica i dati per mostrare l'aggiornamento
               this.loadCredentials();
             },
             error: (error) => {
               console.error('❌ Errore incremento utilizzo:', error);
-              // Non mostrare errore all'utente per non compromettere l'UX
-              // La copia è comunque avvenuta con successo
             }
           });
         }
+      }).catch(err => {
+        console.error('Errore nella copia delle credenziali:', err);
+        this.showErrorMessage('Errore durante la copia delle credenziali');
+      });
+    } else if (password) {
+      // Fallback: usa il parametro password passato
+      navigator.clipboard.writeText(password).then(() => {
+        this.showSuccessMessage('Password copiata negli appunti');
       }).catch(err => {
         console.error('Errore nella copia della password:', err);
         this.showErrorMessage('Errore durante la copia della password');
       });
     } else {
-      this.showInfoMessage('Nessuna password da copiare');
+      this.showInfoMessage('Nessuna credenziale da copiare');
     }
   }
 
+  copyCredentialDetails(credential: CredentialModel): void {
+    const credentialDetails = this.formatCredentialForCopy(credential);
+
+    navigator.clipboard.writeText(credentialDetails).then(() => {
+      this.showSuccessMessage(`Dettagli completi di "${credential.name}" copiati negli appunti`);
+
+      this.credentialsService.incrementUsage(credential.id).subscribe({
+        next: () => {
+          console.log('✅ Utilizzo incrementato per:', credential.name);
+          this.loadCredentials();
+        },
+        error: (error) => {
+          console.error('❌ Errore incremento utilizzo:', error);
+        }
+      });
+    }).catch(err => {
+      console.error('Errore nella copia dei dettagli:', err);
+      this.showErrorMessage('Errore durante la copia dei dettagli');
+    });
+  }
   /**
    * Metodo alternativo per incrementare l'utilizzo quando si copia una password
    * dal componente home o da altri componenti
@@ -342,11 +404,8 @@ export default class CredentialsComponent implements OnInit {
   private formatCredentialForCopy(credential: CredentialModel): string {
     const lines: string[] = [];
 
-    lines.push(`Nome: ${credential.name}`);
-
-    if (credential.description) {
-      lines.push(`Descrizione: ${credential.description}`);
-    }
+    lines.push(`=== ${credential.name.toUpperCase()} ===`);
+    lines.push('');
 
     lines.push(`Username: ${credential.username}`);
     lines.push(`Password: ${credential.password}`);
@@ -359,87 +418,26 @@ export default class CredentialsComponent implements OnInit {
       lines.push(`URL: ${credential.url}`);
     }
 
-    if (credential.profile) {
-      lines.push(`Profile: ${credential.profile}`);
-    }
-
-    // Aggiungi altre informazioni se presenti
-    if (credential.subject_ID) {
-      lines.push(`Subject ID: ${credential.subject_ID}`);
-    }
-
-    if (credential.nickname) {
-      lines.push(`Nickname: ${credential.nickname}`);
-    }
-
-    if (credential.operativity) {
-      lines.push(`Operatività: ${credential.operativity}`);
-    }
-
-    if (credential.area) {
-      lines.push(`Area: ${credential.area}`);
-    }
-
-    if (credential.section) {
-      lines.push(`Sezione: ${credential.section}`);
+    if (credential.description) {
+      lines.push('');
+      lines.push(`Descrizione: ${credential.description}`);
     }
 
     if (credential.user_Admin) {
       lines.push(`User Admin: ${credential.user_Admin}`);
     }
 
-    // Informazioni bancarie
-    if (credential.iban) {
-      lines.push(`IBAN: ${credential.iban}`);
+    if (credential.password_Admin) {
+      lines.push(`Password Admin: ${credential.password_Admin}`);
     }
 
-    if (credential.numero_Carta) {
-      lines.push(`Numero Carta: ${credential.numero_Carta}`);
-    }
-
-    if (credential.data_Scadenza) {
-      lines.push(`Data Scadenza: ${credential.data_Scadenza}`);
-    }
-
-    // PIN vari
-    if (credential.pin_App) {
-      lines.push(`PIN App: ${credential.pin_App}`);
-    }
-
-    if (credential.pin_Carta) {
-      lines.push(`PIN Carta: ${credential.pin_Carta}`);
-    }
-
-    if (credential.pin) {
-      lines.push(`PIN: ${credential.pin}`);
-    }
-
-    // Informazioni macchina
-    if (credential.machine_IP) {
-      lines.push(`IP Macchina: ${credential.machine_IP}`);
-    }
-
-    if (credential.machine_Name) {
-      lines.push(`Nome Macchina: ${credential.machine_Name}`);
-    }
-
-    if (credential.machine_Type) {
-      lines.push(`Tipo Macchina: ${credential.machine_Type}`);
-    }
-
-    // Note
     if (credential.note) {
+      lines.push('');
       lines.push(`Note: ${credential.note}`);
     }
 
-    // Data di scadenza
-    if (credential.expired_Date) {
-      lines.push(`Data Scadenza: ${new Date(credential.expired_Date).toLocaleDateString('it-IT')}`);
-    }
-
-    // Stato
-    lines.push(`Attivo: ${credential.active ? 'Sì' : 'No'}`);
-    lines.push(`Scaduto: ${credential.expired ? 'Sì' : 'No'}`);
+    lines.push('');
+    lines.push(`Copiato il: ${new Date().toLocaleString('it-IT')}`);
 
     return lines.join('\n');
   }
