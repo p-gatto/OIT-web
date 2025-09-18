@@ -1,3 +1,4 @@
+<!-- src/app/features/home/home.component.html -->
 <!-- Header della home page -->
 <div class="home-container">
     <!-- Hero Section -->
@@ -33,91 +34,11 @@
                 </ng-template>
 
                 <ng-template matTabContent>
-                    <div class="tab-content">
-                        <!-- Header della sezione -->
-                        <div class="section-header">
-                            <div class="section-title-container">
-                                <mat-icon class="section-icon credentials-icon">vpn_key</mat-icon>
-                                <div>
-                                    <h2 class="section-title">Credenziali</h2>
-                                    <p class="section-subtitle">Gestisci le tue credenziali di accesso</p>
-                                </div>
-                            </div>
-                            <button mat-raised-button color="primary" (click)="navigateToCredentials()"
-                                class="section-nav-button">
-                                <mat-icon>manage_accounts</mat-icon>
-                                Gestisci Credenziali
-                            </button>
-                        </div>
-
-                        <!-- Contenuto a due colonne -->
-                        <div class="section-content">
-                            <!-- Colonna Più Usate -->
-                            <div class="column">
-                                <h3 class="column-title">
-                                    <mat-icon class="column-icon">trending_up</mat-icon>
-                                    Più Utilizzate
-                                </h3>
-
-                                <div class="items-list" *ngIf="mostUsedCredentials.length > 0; else noCredentialsUsed">
-                                    <div *ngFor="let credential of mostUsedCredentials; trackBy: trackByCredential; let i = index"
-                                        class="item-card credentials-item" (click)="openCredential(credential)">
-                                        <div class="item-header">
-                                            <span class="item-name">{{ credential.name }}</span>
-                                            <span class="usage-badge">{{ credential.usageCount }}</span>
-                                        </div>
-                                        <div class="item-details">
-                                            <span class="item-username">{{ credential.username }}</span>
-                                            <span class="item-date">{{ formatDate(credential.lastUsed) }}</span>
-                                        </div>
-                                        <div class="item-description" *ngIf="credential.description">
-                                            {{ credential.description }}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <ng-template #noCredentialsUsed>
-                                    <div class="empty-state">
-                                        <mat-icon>info</mat-icon>
-                                        <p>Nessuna credenziale utilizzata</p>
-                                    </div>
-                                </ng-template>
-                            </div>
-
-                            <!-- Colonna Più Recenti -->
-                            <div class="column">
-                                <h3 class="column-title">
-                                    <mat-icon class="column-icon">schedule</mat-icon>
-                                    Più Recenti
-                                </h3>
-
-                                <div class="items-list" *ngIf="recentCredentials.length > 0; else noCredentialsRecent">
-                                    <div *ngFor="let credential of recentCredentials; trackBy: trackByCredential"
-                                        class="item-card credentials-item recent-item"
-                                        (click)="openCredential(credential)">
-                                        <div class="item-header">
-                                            <span class="item-name">{{ credential.name }}</span>
-                                            <span class="recent-badge">{{ formatDate(credential.lastUsed) }}</span>
-                                        </div>
-                                        <div class="item-details">
-                                            <span class="item-username">{{ credential.username }}</span>
-                                            <span class="usage-count">{{ credential.usageCount }} utilizzi</span>
-                                        </div>
-                                        <div class="item-description" *ngIf="credential.description">
-                                            {{ credential.description }}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <ng-template #noCredentialsRecent>
-                                    <div class="empty-state">
-                                        <mat-icon>info</mat-icon>
-                                        <p>Nessuna credenziale recente</p>
-                                    </div>
-                                </ng-template>
-                            </div>
-                        </div>
-                    </div>
+                    <app-item-section [config]="credentialsConfig" [mostUsedItems]="credentialsData"
+                        [recentItems]="credentialsRecentData" (navigate)="onCredentialsNavigate()"
+                        (itemClick)="onCredentialItemClick($event)" (copyClick)="onCopyClick($event)"
+                        (actionClick)="onCredentialActionClick($event)">
+                    </app-item-section>
                 </ng-template>
             </mat-tab>
 
@@ -129,92 +50,11 @@
                 </ng-template>
 
                 <ng-template matTabContent>
-                    <div class="tab-content">
-                        <!-- Header della sezione -->
-                        <div class="section-header">
-                            <div class="section-title-container">
-                                <mat-icon class="section-icon weblinks-icon">link</mat-icon>
-                                <div>
-                                    <h2 class="section-title">Web Links</h2>
-                                    <p class="section-subtitle">Organizza i tuoi collegamenti preferiti</p>
-                                </div>
-                            </div>
-                            <button mat-raised-button color="accent" (click)="navigateToWeblinks()"
-                                class="section-nav-button">
-                                <mat-icon>language</mat-icon>
-                                Gestisci Links
-                            </button>
-                        </div>
-
-                        <!-- Contenuto a due colonne -->
-                        <div class="section-content">
-                            <!-- Colonna Più Usati -->
-                            <div class="column">
-                                <h3 class="column-title">
-                                    <mat-icon class="column-icon">trending_up</mat-icon>
-                                    Più Utilizzati
-                                </h3>
-
-                                <div class="items-list" *ngIf="mostUsedWeblinks.length > 0; else noWeblinksUsed">
-                                    <div *ngFor="let weblink of mostUsedWeblinks; trackBy: trackByWeblink; let i = index"
-                                        class="item-card weblinks-item" (click)="openWeblink(weblink)">
-                                        <div class="item-header">
-                                            <span class="item-name">{{ weblink.title }}</span>
-                                            <span class="usage-badge">{{ weblink.usageCount }}</span>
-                                        </div>
-                                        <div class="item-details">
-                                            <span class="item-category">{{ weblink.category }}</span>
-                                            <span class="item-date">{{ formatDate(weblink.lastUsed) }}</span>
-                                        </div>
-                                        <div class="item-description" *ngIf="weblink.description">
-                                            {{ weblink.description }}
-                                        </div>
-                                        <div class="item-url">{{ weblink.url }}</div>
-                                    </div>
-                                </div>
-
-                                <ng-template #noWeblinksUsed>
-                                    <div class="empty-state">
-                                        <mat-icon>info</mat-icon>
-                                        <p>Nessun link utilizzato</p>
-                                    </div>
-                                </ng-template>
-                            </div>
-
-                            <!-- Colonna Più Recenti -->
-                            <div class="column">
-                                <h3 class="column-title">
-                                    <mat-icon class="column-icon">schedule</mat-icon>
-                                    Più Recenti
-                                </h3>
-
-                                <div class="items-list" *ngIf="recentWeblinks.length > 0; else noWeblinksRecent">
-                                    <div *ngFor="let weblink of recentWeblinks; trackBy: trackByWeblink"
-                                        class="item-card weblinks-item recent-item" (click)="openWeblink(weblink)">
-                                        <div class="item-header">
-                                            <span class="item-name">{{ weblink.title }}</span>
-                                            <span class="recent-badge">{{ formatDate(weblink.lastUsed) }}</span>
-                                        </div>
-                                        <div class="item-details">
-                                            <span class="item-category">{{ weblink.category }}</span>
-                                            <span class="usage-count">{{ weblink.usageCount }} utilizzi</span>
-                                        </div>
-                                        <div class="item-description" *ngIf="weblink.description">
-                                            {{ weblink.description }}
-                                        </div>
-                                        <div class="item-url">{{ weblink.url }}</div>
-                                    </div>
-                                </div>
-
-                                <ng-template #noWeblinksRecent>
-                                    <div class="empty-state">
-                                        <mat-icon>info</mat-icon>
-                                        <p>Nessun link recente</p>
-                                    </div>
-                                </ng-template>
-                            </div>
-                        </div>
-                    </div>
+                    <app-item-section [config]="weblinksConfig" [mostUsedItems]="weblinksData"
+                        [recentItems]="weblinksRecentData" (navigate)="onWeblinksNavigate()"
+                        (itemClick)="onWeblinkItemClick($event)" (copyClick)="onCopyClick($event)"
+                        (actionClick)="onWeblinkActionClick($event)">
+                    </app-item-section>
                 </ng-template>
             </mat-tab>
 
@@ -226,98 +66,10 @@
                 </ng-template>
 
                 <ng-template matTabContent>
-                    <div class="tab-content">
-                        <!-- Header della sezione -->
-                        <div class="section-header">
-                            <div class="section-title-container">
-                                <mat-icon class="section-icon notes-icon">note_alt</mat-icon>
-                                <div>
-                                    <h2 class="section-title">Note Tecniche</h2>
-                                    <p class="section-subtitle">Conserva e consulta le tue procedure</p>
-                                </div>
-                            </div>
-                            <button mat-raised-button color="warn" (click)="navigateToNotes()"
-                                class="section-nav-button">
-                                <mat-icon>edit_note</mat-icon>
-                                Gestisci Note
-                            </button>
-                        </div>
-
-                        <!-- Contenuto a due colonne -->
-                        <div class="section-content">
-                            <!-- Colonna Più Usate -->
-                            <div class="column">
-                                <h3 class="column-title">
-                                    <mat-icon class="column-icon">trending_up</mat-icon>
-                                    Più Utilizzate
-                                </h3>
-
-                                <div class="items-list" *ngIf="mostUsedNotes.length > 0; else noNotesUsed">
-                                    <div *ngFor="let note of mostUsedNotes; trackBy: trackByNote; let i = index"
-                                        class="item-card notes-item" (click)="openNote(note)">
-                                        <div class="item-header">
-                                            <span class="item-name">{{ note.name }}</span>
-                                            <span class="usage-badge">{{ note.usageCount }}</span>
-                                        </div>
-                                        <div class="item-details">
-                                            <span class="item-type">{{ note.type }}</span>
-                                            <span class="item-date">{{ formatDate(note.lastUsed) }}</span>
-                                        </div>
-                                        <div class="item-description" *ngIf="note.description">
-                                            {{ note.description }}
-                                        </div>
-                                        <div class="note-category">
-                                            <span class="category-chip">{{ note.area }}</span>
-                                            <span class="category-chip">{{ note.category }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <ng-template #noNotesUsed>
-                                    <div class="empty-state">
-                                        <mat-icon>info</mat-icon>
-                                        <p>Nessuna nota utilizzata</p>
-                                    </div>
-                                </ng-template>
-                            </div>
-
-                            <!-- Colonna Più Recenti -->
-                            <div class="column">
-                                <h3 class="column-title">
-                                    <mat-icon class="column-icon">schedule</mat-icon>
-                                    Più Recenti
-                                </h3>
-
-                                <div class="items-list" *ngIf="recentNotes.length > 0; else noNotesRecent">
-                                    <div *ngFor="let note of recentNotes; trackBy: trackByNote"
-                                        class="item-card notes-item recent-item" (click)="openNote(note)">
-                                        <div class="item-header">
-                                            <span class="item-name">{{ note.name }}</span>
-                                            <span class="recent-badge">{{ formatDate(note.lastUsed) }}</span>
-                                        </div>
-                                        <div class="item-details">
-                                            <span class="item-type">{{ note.type }}</span>
-                                            <span class="usage-count">{{ note.usageCount }} utilizzi</span>
-                                        </div>
-                                        <div class="item-description" *ngIf="note.description">
-                                            {{ note.description }}
-                                        </div>
-                                        <div class="note-category">
-                                            <span class="category-chip">{{ note.area }}</span>
-                                            <span class="category-chip">{{ note.category }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <ng-template #noNotesRecent>
-                                    <div class="empty-state">
-                                        <mat-icon>info</mat-icon>
-                                        <p>Nessuna nota recente</p>
-                                    </div>
-                                </ng-template>
-                            </div>
-                        </div>
-                    </div>
+                    <app-item-section [config]="notesConfig" [mostUsedItems]="notesData" [recentItems]="notesRecentData"
+                        (navigate)="onNotesNavigate()" (itemClick)="onNoteItemClick($event)"
+                        (copyClick)="onCopyClick($event)" (actionClick)="onNoteActionClick($event)">
+                    </app-item-section>
                 </ng-template>
             </mat-tab>
 

@@ -1,0 +1,59 @@
+<div class="tab-content">
+    <!-- Header della sezione -->
+    <div class="section-header">
+        <div class="section-title-container">
+            <mat-icon [class]="'section-icon ' + config.color">{{ config.icon }}</mat-icon>
+            <div>
+                <h2 class="section-title">{{ config.title }}</h2>
+                <p class="section-subtitle">{{ config.subtitle }}</p>
+            </div>
+        </div>
+        <button mat-raised-button color="primary" (click)="onNavigate()" class="section-nav-button">
+            <mat-icon>{{ config.buttonIcon }}</mat-icon>
+            {{ config.buttonText }}
+        </button>
+    </div>
+
+    <!-- Contenuto a due colonne -->
+    <div class="section-content">
+        <!-- Colonna Più Usati -->
+        <div class="column">
+            <h3 class="column-title">
+                <mat-icon class="column-icon">trending_up</mat-icon>
+                Più Utilizzati
+            </h3>
+
+            <div class="items-list" *ngIf="mostUsedItems.length > 0; else noItemsTemplate">
+                <app-item-card *ngFor="let item of mostUsedItems; let i = index; trackBy: trackByItem" [item]="item"
+                    [cardType]="config.cardType" [showRanking]="true" [ranking]="i + 1"
+                    (itemClick)="onItemClick($event)" (copyClick)="onCopyClick($event)"
+                    (actionClick)="onActionClick($event)">
+                </app-item-card>
+            </div>
+        </div>
+
+        <!-- Colonna Più Recenti -->
+        <div class="column">
+            <h3 class="column-title">
+                <mat-icon class="column-icon">schedule</mat-icon>
+                Più Recenti
+            </h3>
+
+            <div class="items-list" *ngIf="recentItems.length > 0; else noItemsTemplate">
+                <app-item-card *ngFor="let item of recentItems; trackBy: trackByItem" [item]="item"
+                    [cardType]="config.cardType" [isRecent]="true"
+                    [showFavoriteAnimation]="config.cardType === 'weblink'" (itemClick)="onItemClick($event)"
+                    (copyClick)="onCopyClick($event)" (actionClick)="onActionClick($event)">
+                </app-item-card>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Template per stato vuoto -->
+<ng-template #noItemsTemplate>
+    <div class="empty-state">
+        <mat-icon>info</mat-icon>
+        <p>Nessun elemento trovato</p>
+    </div>
+</ng-template>

@@ -1,0 +1,104 @@
+<mat-card class="cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-lg animate-slide-up"
+    [class.border-l-4]="isRecent" [class.border-red-500]="isRecent && cardType === 'credential'"
+    [class.border-blue-500]="isRecent && cardType === 'weblink'"
+    [class.border-green-500]="isRecent && cardType === 'note'" (click)="onItemClick()">
+
+    <mat-card-header class="pb-2">
+        <div class="flex items-start justify-between w-full">
+            <div class="flex-1 min-w-0 mr-2">
+                <mat-card-title class="text-lg font-semibold text-gray-800 truncate" [matTooltip]="getDisplayTitle()">
+                    {{ getDisplayTitle() }}
+                </mat-card-title>
+                <mat-card-subtitle class="text-sm text-gray-600 mt-1">
+                    {{ getSubtitle() }}
+                </mat-card-subtitle>
+            </div>
+            <div class="flex flex-col items-end">
+                <!-- Badge per ranking (most used) -->
+                <span *ngIf="showRanking && ranking !== undefined"
+                    class="bg-green-100 text-green-800 text-xs font-semibold px-2 py-1 rounded-full mb-1">
+                    #{{ ranking }}
+                </span>
+                <!-- Badge per recent -->
+                <span *ngIf="isRecent" class="recent-badge text-xs">
+                    {{ formatDate(item.lastUsed) }}
+                </span>
+                <!-- Badge per usage count -->
+                <span *ngIf="!isRecent && !showRanking" class="usage-badge text-xs">
+                    {{ item.usageCount }}
+                </span>
+                <!-- Icona favorito -->
+                <mat-icon *ngIf="item.isFavorite" class="text-red-500 text-sm mt-1"
+                    [class.animate-bounce-gentle]="cardType === 'weblink' && showFavoriteAnimation"
+                    matTooltip="Preferito">
+                    favorite
+                </mat-icon>
+                <!-- Icona per tipo (note/recent) -->
+                <mat-icon *ngIf="isRecent && cardType === 'note'" class="text-green-500 text-sm mt-1">
+                    schedule
+                </mat-icon>
+                <mat-icon *ngIf="isRecent && cardType === 'weblink'" class="text-blue-500 text-sm mt-1">
+                    access_time
+                </mat-icon>
+            </div>
+        </div>
+    </mat-card-header>
+
+    <mat-card-content class="py-2">
+        <!-- Descrizione -->
+        <p *ngIf="item.description" class="text-gray-600 text-sm mb-3 line-clamp-2">
+            {{ item.description }}
+        </p>
+
+        <!-- Statistiche utilizzo -->
+        <div class="flex items-center justify-between text-xs text-gray-500 mb-3">
+            <span class="flex items-center">
+                <mat-icon class="text-xs mr-1">bar_chart</mat-icon>
+                {{ item.usageCount }} utilizzi
+            </span>
+            <span class="flex items-center" [class.font-semibold]="isRecent"
+                [class.text-blue-600]="isRecent && cardType === 'weblink'"
+                [class.text-green-600]="isRecent && cardType === 'note'"
+                [class.text-red-600]="isRecent && cardType === 'credential'">
+                <mat-icon class="text-xs mr-1">access_time</mat-icon>
+                {{ formatDate(item.lastUsed) }}
+            </span>
+        </div>
+
+        <!-- Preview contenuto (per note) -->
+        <div *ngIf="cardType === 'note' && item.freeText" class="bg-gray-50 border rounded p-2 mb-2">
+            <pre class="text-xs text-gray-700 whitespace-pre-wrap line-clamp-3 font-mono">{{ item.freeText }}</pre>
+        </div>
+
+        <!-- URL (per weblinks) -->
+        <div *ngIf="cardType === 'weblink' && item.url"
+            class="item-url text-xs text-blue-600 font-mono bg-blue-50 p-2 rounded mt-2">
+            {{ item.url }}
+        </div>
+
+        <!-- Categorie per note -->
+        <div *ngIf="cardType === 'note' && (item.area || item.category)" class="note-category flex gap-1 mt-2">
+            <span *ngIf="item.area" class="category-chip text-xs">{{ item.area }}</span>
+            <span *ngIf="item.category" class="category-chip text-xs">{{ item.category }}</span>
+        </div>
+    </mat-card-content>
+
+    <mat-card-actions class="pt-2">
+        <div class="flex justify-between items-center w-full">
+            <!-- Chip per area/categoria -->
+            <mat-chip class="text-xs">{{ getMainCategory() }}</mat-chip>
+
+            <div class="flex gap-1">
+                <!-- Pulsante copia (per note e credentials) -->
+                <button *ngIf="canCopy()" mat-icon-button matTooltip="Copia contenuto" (click)="onCopyClick($event)">
+                    <mat-icon class="text-sm">content_copy</mat-icon>
+                </button>
+
+                <!-- Pulsante visualizza/apri -->
+                <button mat-icon-button [matTooltip]="getActionTooltip()" (click)="onActionClick($event)">
+                    <mat-icon class="text-sm">{{ getActionIcon() }}</mat-icon>
+                </button>
+            </div>
+        </div>
+    </mat-card-actions>
+</mat-card>

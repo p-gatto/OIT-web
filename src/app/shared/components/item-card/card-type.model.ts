@@ -1,0 +1,1 @@
+export type CardType = 'credential' | 'weblink' | 'note';

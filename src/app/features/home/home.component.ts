@@ -20,6 +20,10 @@ import { Credential as CredentialOIT } from '../credentials/models/credential.mo
 import { WebLink } from '../weblinks/weblink.models';
 import { Note } from '../notes/note.models';
 import { filter, interval, startWith, Subject, switchMap, takeUntil } from 'rxjs';
+import { ItemSectionComponent } from '../../shared/components/item-section/item-section.component';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { ItemCard } from '../../shared/components/item-card/item-card.model';
+import { ItemSection } from '../../shared/components/item-section/item-section.model';
 
 @Component({
   selector: 'app-home',
@@ -32,7 +36,8 @@ import { filter, interval, startWith, Subject, switchMap, takeUntil } from 'rxjs
     MatProgressSpinnerModule,
     MatTooltipModule,
     MatDividerModule,
-    MatTabsModule
+    MatTabsModule,
+    ItemSectionComponent
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css'
@@ -43,21 +48,51 @@ export default class HomeComponent {
   private credentialsService = inject(CredentialsService);
   private webLinksService = inject(WebLinksService);
   private notesService = inject(NotesService);
+  private snackBar = inject(MatSnackBar);
 
   private destroy$ = new Subject<void>();
 
   loading = true;
   selectedTabIndex = 0;
 
-  // Dati per le tre sezioni
-  mostUsedCredentials: CredentialOIT[] = [];
-  recentCredentials: CredentialOIT[] = [];
+  // Dati convertiti per i componenti modulari
+  credentialsData: ItemCard[] = [];
+  credentialsRecentData: ItemCard[] = [];
+  weblinksData: ItemCard[] = [];
+  weblinksRecentData: ItemCard[] = [];
+  notesData: ItemCard[] = [];
+  notesRecentData: ItemCard[] = [];
 
-  mostUsedWeblinks: WebLink[] = [];
-  recentWeblinks: WebLink[] = [];
+  // Configurazioni per le sezioni
+  credentialsConfig: ItemSection = {
+    title: 'Credenziali',
+    subtitle: 'Gestisci le tue credenziali di accesso',
+    icon: 'vpn_key',
+    color: 'credentials-icon',
+    cardType: 'credential',
+    buttonText: 'Gestisci Credenziali',
+    buttonIcon: 'manage_accounts'
+  };
 
-  mostUsedNotes: Note[] = [];
-  recentNotes: Note[] = [];
+  weblinksConfig: ItemSection = {
+    title: 'Web Links',
+    subtitle: 'Organizza i tuoi collegamenti preferiti',
+    icon: 'link',
+    color: 'weblinks-icon',
+    cardType: 'weblink',
+    buttonText: 'Gestisci Links',
+    buttonIcon: 'language'
+  };
+
+  notesConfig: ItemSection = {
+    title: 'Note Tecniche',
+    subtitle: 'Conserva e consulta le tue procedure',
+    icon: 'note_alt',
+    color: 'notes-icon',
+    cardType: 'note',
+    buttonText: 'Gestisci Note',
+    buttonIcon: 'edit_note'
+  };
 
   ngOnInit(): void {
     this.setupAutoRefresh();
@@ -72,10 +107,8 @@ export default class HomeComponent {
 
   /**
    * Configura l'auto-refresh dei dati ogni 30 secondi
-   * e al ritorno sulla home page
    */
   private setupAutoRefresh(): void {
-    // Auto-refresh ogni 30 secondi quando la home è visibile
     interval(30000).pipe(
       startWith(0),
       switchMap(() => this.loadAllDataSilently()),
@@ -85,7 +118,6 @@ export default class HomeComponent {
 
   /**
    * Ascolta i cambiamenti di navigazione per ricaricare i dati
-   * quando si torna sulla home page
    */
   private setupNavigationListener(): void {
     this.router.events.pipe(
@@ -109,27 +141,25 @@ export default class HomeComponent {
         mostUsedLinks, recentLinks,
         mostUsedNotesData, recentNotesData
       ] = await Promise.all([
-        // Credentials
         this.credentialsService.getMostUsed(10).toPromise(),
         this.credentialsService.getRecent(10).toPromise(),
-
-        // WebLinks
         this.webLinksService.getMostUsed(10).toPromise(),
         this.webLinksService.getRecent(10).toPromise(),
-
-        // Notes
         this.notesService.getMostUsed(10).toPromise(),
         this.notesService.getRecent(10).toPromise()
       ]);
 
-      this.updateData({
-        mostUsedCreds, recentCreds,
-        mostUsedLinks, recentLinks,
-        mostUsedNotesData, recentNotesData
-      });
+      // Converti i dati per i componenti modulari
+      this.credentialsData = this.convertCredentialsToCardData(mostUsedCreds || []);
+      this.credentialsRecentData = this.convertCredentialsToCardData(recentCreds || []);
+      this.weblinksData = this.convertWeblinksToCardData(mostUsedLinks || []);
+      this.weblinksRecentData = this.convertWeblinksToCardData(recentLinks || []);
+      this.notesData = this.convertNotesToCardData(mostUsedNotesData || []);
+      this.notesRecentData = this.convertNotesToCardData(recentNotesData || []);
 
     } catch (error) {
       console.error('Errore nel caricamento dei dati:', error);
+      this.showSnackBar('Errore nel caricamento dei dati', 'error');
     } finally {
       this.loading = false;
     }
@@ -145,47 +175,25 @@ export default class HomeComponent {
         mostUsedLinks, recentLinks,
         mostUsedNotesData, recentNotesData
       ] = await Promise.all([
-        // Credentials
         this.credentialsService.getMostUsed(10).toPromise(),
         this.credentialsService.getRecent(10).toPromise(),
-
-        // WebLinks
         this.webLinksService.getMostUsed(10).toPromise(),
         this.webLinksService.getRecent(10).toPromise(),
-
-        // Notes
         this.notesService.getMostUsed(10).toPromise(),
         this.notesService.getRecent(10).toPromise()
       ]);
 
-      this.updateData({
-        mostUsedCreds, recentCreds,
-        mostUsedLinks, recentLinks,
-        mostUsedNotesData, recentNotesData
-      });
+      // Aggiorna i dati convertiti
+      this.credentialsData = this.convertCredentialsToCardData(mostUsedCreds || []);
+      this.credentialsRecentData = this.convertCredentialsToCardData(recentCreds || []);
+      this.weblinksData = this.convertWeblinksToCardData(mostUsedLinks || []);
+      this.weblinksRecentData = this.convertWeblinksToCardData(recentLinks || []);
+      this.notesData = this.convertNotesToCardData(mostUsedNotesData || []);
+      this.notesRecentData = this.convertNotesToCardData(recentNotesData || []);
 
     } catch (error) {
       console.error('Errore nel refresh silenzioso dei dati:', error);
     }
-  }
-
-  /**
-   * Aggiorna i dati nelle proprietà del componente
-   */
-  private updateData(data: {
-    mostUsedCreds: CredentialOIT[] | undefined,
-    recentCreds: CredentialOIT[] | undefined,
-    mostUsedLinks: WebLink[] | undefined,
-    recentLinks: WebLink[] | undefined,
-    mostUsedNotesData: Note[] | undefined,
-    recentNotesData: Note[] | undefined
-  }): void {
-    this.mostUsedCredentials = data.mostUsedCreds || [];
-    this.recentCredentials = data.recentCreds || [];
-    this.mostUsedWeblinks = data.mostUsedLinks || [];
-    this.recentWeblinks = data.recentLinks || [];
-    this.mostUsedNotes = data.mostUsedNotesData || [];
-    this.recentNotes = data.recentNotesData || [];
   }
 
   /**
@@ -198,8 +206,8 @@ export default class HomeComponent {
           this.credentialsService.getMostUsed(10).toPromise(),
           this.credentialsService.getRecent(10).toPromise()
         ]).then(([mostUsed, recent]) => {
-          this.mostUsedCredentials = mostUsed || [];
-          this.recentCredentials = recent || [];
+          this.credentialsData = this.convertCredentialsToCardData(mostUsed || []);
+          this.credentialsRecentData = this.convertCredentialsToCardData(recent || []);
         }).catch(error => {
           console.error('Errore nel refresh delle credenziali:', error);
         });
@@ -210,8 +218,8 @@ export default class HomeComponent {
           this.webLinksService.getMostUsed(10).toPromise(),
           this.webLinksService.getRecent(10).toPromise()
         ]).then(([mostUsed, recent]) => {
-          this.mostUsedWeblinks = mostUsed || [];
-          this.recentWeblinks = recent || [];
+          this.weblinksData = this.convertWeblinksToCardData(mostUsed || []);
+          this.weblinksRecentData = this.convertWeblinksToCardData(recent || []);
         }).catch(error => {
           console.error('Errore nel refresh dei weblinks:', error);
         });
@@ -222,8 +230,8 @@ export default class HomeComponent {
           this.notesService.getMostUsed(10).toPromise(),
           this.notesService.getRecent(10).toPromise()
         ]).then(([mostUsed, recent]) => {
-          this.mostUsedNotes = mostUsed || [];
-          this.recentNotes = recent || [];
+          this.notesData = this.convertNotesToCardData(mostUsed || []);
+          this.notesRecentData = this.convertNotesToCardData(recent || []);
         }).catch(error => {
           console.error('Errore nel refresh delle note:', error);
         });
@@ -232,76 +240,136 @@ export default class HomeComponent {
   }
 
   /**
-   * Metodo pubblico per forzare il refresh (utilizzabile da altri componenti)
+   * Metodi di conversione per trasformare i dati specifici in ItemCardData
    */
-  public forceRefresh(): void {
-    this.loadAllDataSilently();
+  private convertCredentialsToCardData(credentials: CredentialOIT[]): ItemCard[] {
+    return credentials.map(cred => ({
+      id: cred.id,
+      name: cred.name,
+      description: cred.description,
+      category: cred.area,
+      subCategory: cred.section,
+      area: cred.area,
+      usageCount: cred.usageCount,
+      lastUsed: cred.lastUsed,
+      username: cred.username,
+      isFavorite: false // Le credenziali non hanno il campo isFavorite nel modello attuale
+    }));
+  }
+
+  private convertWeblinksToCardData(weblinks: WebLink[]): ItemCard[] {
+    return weblinks.map(link => ({
+      id: link.id,
+      name: link.title, // Per i weblinks il nome è il title
+      title: link.title,
+      description: link.description,
+      category: link.category,
+      subCategory: link.subCategory,
+      area: link.area,
+      usageCount: link.usageCount,
+      lastUsed: link.lastUsed,
+      url: link.url,
+      isFavorite: link.isFavorite
+    }));
+  }
+
+  private convertNotesToCardData(notes: Note[]): ItemCard[] {
+    return notes.map(note => ({
+      id: note.id,
+      name: note.name,
+      description: note.description,
+      category: note.category,
+      subCategory: note.subCategory,
+      area: note.area,
+      type: note.type,
+      usageCount: note.usageCount,
+      lastUsed: note.lastUsed,
+      freeText: note.freeText,
+      isFavorite: note.isFavorite
+    }));
   }
 
   /**
-   * Metodo per gestire il cambio di tab con refresh dei dati
+   * Event handlers per le sezioni
    */
   onTabChange(event: any): void {
     this.selectedTabIndex = event.index;
-    // Ricarica i dati del nuovo tab selezionato
     this.refreshCurrentTabData();
   }
 
-  // Metodi di navigazione
-  navigateToCredentials(): void {
+  // Navigazione
+  onCredentialsNavigate(): void {
     this.router.navigate(['/credentials']);
   }
 
-  navigateToWeblinks(): void {
+  onWeblinksNavigate(): void {
     this.router.navigate(['/weblinks']);
   }
 
-  navigateToNotes(): void {
+  onNotesNavigate(): void {
     this.router.navigate(['/notes']);
   }
 
-  // Metodi per aprire/utilizzare gli elementi con refresh immediato
-  openCredential(credential: CredentialOIT): void {
-    // Incrementa il contatore di utilizzo
-    this.credentialsService.incrementUsage(credential.id).subscribe({
+  // Gestione click sugli item
+  onCredentialItemClick(item: ItemCard): void {
+    this.credentialsService.incrementUsage(item.id).subscribe({
       next: () => {
         console.log('Utilizzo credenziale incrementato');
-        // Refresh immediato delle credenziali
         this.refreshCredentialsData();
       },
       error: (error) => console.error('Errore incremento utilizzo:', error)
     });
 
-    console.log('Apertura credenziale:', credential.name);
+    console.log('Apertura credenziale:', item.name);
   }
 
-  openWeblink(weblink: WebLink): void {
-    // Incrementa il contatore di utilizzo
-    this.webLinksService.incrementUsage(weblink.id).subscribe({
+  onWeblinkItemClick(item: ItemCard): void {
+    this.webLinksService.incrementUsage(item.id).subscribe({
       next: () => {
         console.log('Utilizzo weblink incrementato');
-        // Refresh immediato dei weblinks
         this.refreshWeblinksData();
       },
       error: (error) => console.error('Errore incremento utilizzo:', error)
     });
 
-    // Apri il link in una nuova tab
-    window.open(weblink.url, '_blank');
+    if (item.url) {
+      window.open(item.url, '_blank');
+    }
   }
 
-  openNote(note: Note): void {
-    // Incrementa il contatore di utilizzo
-    this.notesService.incrementUsage(note.id).subscribe({
+  onNoteItemClick(item: ItemCard): void {
+    this.notesService.incrementUsage(item.id).subscribe({
       next: () => {
         console.log('Utilizzo nota incrementato');
-        // Refresh immediato delle note
         this.refreshNotesData();
       },
       error: (error) => console.error('Errore incremento utilizzo:', error)
     });
 
-    console.log('Apertura nota:', note.name);
+    console.log('Apertura nota:', item.name);
+  }
+
+  // Gestione copia
+  onCopyClick(text: string): void {
+    navigator.clipboard.writeText(text).then(() => {
+      this.showSnackBar('Contenuto copiato negli appunti', 'success');
+    }).catch(err => {
+      console.error('Errore nella copia:', err);
+      this.showSnackBar('Errore durante la copia', 'error');
+    });
+  }
+
+  // Gestione action click (stesso comportamento del click principale)
+  onCredentialActionClick(item: ItemCard): void {
+    this.onCredentialItemClick(item);
+  }
+
+  onWeblinkActionClick(item: ItemCard): void {
+    this.onWeblinkItemClick(item);
+  }
+
+  onNoteActionClick(item: ItemCard): void {
+    this.onNoteItemClick(item);
   }
 
   /**
@@ -312,8 +380,8 @@ export default class HomeComponent {
       this.credentialsService.getMostUsed(10).toPromise(),
       this.credentialsService.getRecent(10).toPromise()
     ]).then(([mostUsed, recent]) => {
-      this.mostUsedCredentials = mostUsed || [];
-      this.recentCredentials = recent || [];
+      this.credentialsData = this.convertCredentialsToCardData(mostUsed || []);
+      this.credentialsRecentData = this.convertCredentialsToCardData(recent || []);
     });
   }
 
@@ -322,8 +390,8 @@ export default class HomeComponent {
       this.webLinksService.getMostUsed(10).toPromise(),
       this.webLinksService.getRecent(10).toPromise()
     ]).then(([mostUsed, recent]) => {
-      this.mostUsedWeblinks = mostUsed || [];
-      this.recentWeblinks = recent || [];
+      this.weblinksData = this.convertWeblinksToCardData(mostUsed || []);
+      this.weblinksRecentData = this.convertWeblinksToCardData(recent || []);
     });
   }
 
@@ -332,44 +400,31 @@ export default class HomeComponent {
       this.notesService.getMostUsed(10).toPromise(),
       this.notesService.getRecent(10).toPromise()
     ]).then(([mostUsed, recent]) => {
-      this.mostUsedNotes = mostUsed || [];
-      this.recentNotes = recent || [];
+      this.notesData = this.convertNotesToCardData(mostUsed || []);
+      this.notesRecentData = this.convertNotesToCardData(recent || []);
     });
   }
 
-  // Metodi di utilità per la formattazione
-  formatDate(dateString?: Date): string {
-    if (!dateString) return 'Mai utilizzato';
+  /**
+   * Metodo pubblico per forzare il refresh (utilizzabile da altri componenti)
+   */
+  public forceRefresh(): void {
+    this.loadAllDataSilently();
+  }
 
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  /**
+   * Utility per mostrare snackbar
+   */
+  private showSnackBar(message: string, type: 'success' | 'error' | 'info' = 'info'): void {
+    const panelClass = type === 'success' ? ['success-snackbar'] :
+      type === 'error' ? ['error-snackbar'] : ['info-snackbar'];
 
-    if (diffDays === 1) return 'Oggi';
-    if (diffDays === 2) return 'Ieri';
-    if (diffDays <= 7) return `${diffDays} giorni fa`;
-    if (diffDays <= 30) return `${Math.ceil(diffDays / 7)} settimane fa`;
-
-    return date.toLocaleDateString('it-IT', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
+    this.snackBar.open(message, 'Chiudi', {
+      duration: 4000,
+      panelClass,
+      horizontalPosition: 'end',
+      verticalPosition: 'top'
     });
   }
-
-  // TrackBy functions per migliorare le performance
-  trackByCredential(index: number, credential: CredentialOIT): number {
-    return credential.id;
-  }
-
-  trackByWeblink(index: number, weblink: WebLink): number {
-    return weblink.id;
-  }
-
-  trackByNote(index: number, note: Note): number {
-    return note.id;
-  }
-
 
 }
