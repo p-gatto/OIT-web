@@ -90,9 +90,31 @@ export default class WeblinksComponent {
     }
 
     // Increment usage count
+    /*  this.webLinksService.incrementUsage(link.id).subscribe({
+       next: () => {
+         // Optionally refresh the current tab data
+         this.refreshCurrentTab();
+       },
+       error: (error) => {
+         console.error('Error incrementing usage:', error);
+       }
+     }); */
+
+    // Open link in new tab
+    window.open(link.url, '_blank');
+
+    console.log('Link aperto:', link.title);
+  }
+
+  openLinkWithTracking(link: WebLink, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+
+    // Incrementa l'utilizzo solo quando chiamato esplicitamente
     this.webLinksService.incrementUsage(link.id).subscribe({
       next: () => {
-        // Optionally refresh the current tab data
+        // Ricarica solo il tab corrente per non perdere lo stato
         this.refreshCurrentTab();
       },
       error: (error) => {
@@ -100,7 +122,7 @@ export default class WeblinksComponent {
       }
     });
 
-    // Open link in new tab
+    // Apri il link
     window.open(link.url, '_blank');
   }
 

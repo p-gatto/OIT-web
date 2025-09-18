@@ -31,9 +31,20 @@ export class ItemCardComponent {
   @Input() ranking?: number;
   @Input() showFavoriteAnimation = false;
 
+  @Output() itemView = new EventEmitter<ItemCard>();  // Solo visualizzazione
+  @Output() itemUse = new EventEmitter<ItemCard>();   // Uso effettivo
+
   @Output() itemClick = new EventEmitter<ItemCard>();
   @Output() copyClick = new EventEmitter<string>();
   @Output() actionClick = new EventEmitter<ItemCard>();
+
+  onItemView(): void {
+    this.itemView.emit(this.item);
+  }
+
+  onItemUse(): void {
+    this.itemUse.emit(this.item);
+  }
 
   getDisplayTitle(): string {
     switch (this.cardType) {

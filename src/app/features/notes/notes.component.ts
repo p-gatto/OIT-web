@@ -110,7 +110,7 @@ export default class NotesComponent {
     }
 
     // Increment usage count
-    this.notesService.incrementUsage(note.id).subscribe({
+    /* this.notesService.incrementUsage(note.id).subscribe({
       next: () => {
         // Refresh data to show updated usage count
         this.loadData();
@@ -118,7 +118,7 @@ export default class NotesComponent {
       error: (error) => {
         console.error('Error incrementing usage:', error);
       }
-    });
+    }); */
 
     // Here you could open a detailed view or copy to clipboard
     // For now, we'll show the content in an alert (you can improve this)
@@ -129,11 +129,40 @@ export default class NotesComponent {
     }
   }
 
+  useNote(note: Note, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+
+    // Incrementa l'utilizzo quando l'utente "usa" effettivamente la nota
+    this.notesService.incrementUsage(note.id).subscribe({
+      next: () => {
+        // Ricarica i dati per mostrare le statistiche aggiornate
+        this.loadData();
+      },
+      error: (error) => {
+        console.error('Error incrementing usage:', error);
+      }
+    });
+
+    // Esegui l'azione di "uso" della nota (es. copia negli appunti)
+    const content = note.freeText ? `${note.description}\n\n${note.freeText}` : note.description;
+    if (content) {
+      navigator.clipboard.writeText(content).then(() => {
+        console.log('Nota copiata e utilizzo incrementato');
+      });
+    }
+  }
+
+  // MODIFICA: Aggiorna il metodo copyToClipboard per incrementare solo quando si copia
   copyToClipboard(text: string, event: Event): void {
     event.stopPropagation();
+
     navigator.clipboard.writeText(text).then(() => {
-      // Show success message
       console.log('Copiato negli appunti');
+
+      // Se vuoi incrementare l'utilizzo quando si copia, trova la nota corrispondente
+      // e chiama this.notesService.incrementUsage(noteId)
     });
   }
 

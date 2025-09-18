@@ -81,6 +81,32 @@ export default class CredentialsComponent implements OnInit {
     this.loadCredentials();
   }
 
+  viewCredential(credential: CredentialModel): void {
+    // Visualizza la credenziale SENZA incrementare le statistiche
+    console.log('Visualizzazione credenziale:', credential.name);
+
+    // Apri il dialog in modalità di sola lettura/visualizzazione
+    const dialogRef = this.dialog.open(CredentialDialogComponent, {
+      width: '95vw',
+      maxWidth: '1400px',
+      height: '90vh',
+      maxHeight: '900px',
+      panelClass: 'credential-dialog-container',
+      disableClose: false,
+      hasBackdrop: true,
+      backdropClass: 'credential-dialog-backdrop',
+      data: { ...credential, readOnly: true } // Aggiungi flag per modalità read-only
+    });
+
+    // Non incrementare l'utilizzo per la sola visualizzazione
+    dialogRef.afterClosed().subscribe(result => {
+      if (result && result.id) {
+        // Solo se l'utente ha modificato qualcosa
+        this.loadCredentials();
+      }
+    });
+  }
+
   loadCredentials(): void {
     this.loading = true;
     this.credentialsService.getCredentials(this.filter).subscribe({
@@ -115,14 +141,14 @@ export default class CredentialsComponent implements OnInit {
 
   openDialog(credential?: CredentialModel): void {
     const dialogRef = this.dialog.open(CredentialDialogComponent, {
-      width: '95vw',           // 95% della larghezza del viewport
-      maxWidth: '1400px',      // Larghezza massima in pixel
-      height: '90vh',          // 90% dell'altezza del viewport
-      maxHeight: '900px',      // Altezza massima in pixel
-      panelClass: 'credential-dialog-container', // Classe CSS personalizzata
-      disableClose: false,     // Permette di chiudere con ESC o click fuori
-      hasBackdrop: true,       // Mantiene il backdrop
-      backdropClass: 'credential-dialog-backdrop', // Classe personalizzata per il backdrop
+      width: '95vw',
+      maxWidth: '1400px',
+      height: '90vh',
+      maxHeight: '900px',
+      panelClass: 'credential-dialog-container',
+      disableClose: false,
+      hasBackdrop: true,
+      backdropClass: 'credential-dialog-backdrop',
       data: credential ? { ...credential } : {}
     });
 
@@ -190,6 +216,7 @@ export default class CredentialsComponent implements OnInit {
     navigator.clipboard.writeText(credential.password).then(() => {
       this.showSuccessMessage('Password copiata negli appunti');
 
+      // MANTIENI l'incremento per la copia - è un utilizzo effettivo
       this.credentialsService.incrementUsage(credential.id).subscribe({
         next: () => {
           console.log('✅ Utilizzo incrementato per:', credential.name);
@@ -209,6 +236,7 @@ export default class CredentialsComponent implements OnInit {
     navigator.clipboard.writeText(credential.username).then(() => {
       this.showSuccessMessage('Username copiato negli appunti');
 
+      // MANTIENI l'incremento per la copia - è un utilizzo effettivo
       this.credentialsService.incrementUsage(credential.id).subscribe({
         next: () => {
           console.log('✅ Utilizzo incrementato per:', credential.name);
@@ -226,7 +254,6 @@ export default class CredentialsComponent implements OnInit {
     event.stopPropagation();
 
     if (credential) {
-      // CORRETTO: Usa credential.password, non credential.description
       const credentialText = `Username: ${credential.username}\nPassword: ${credential.password}`;
 
       navigator.clipboard.writeText(credentialText).then(() => {
@@ -235,6 +262,7 @@ export default class CredentialsComponent implements OnInit {
         if (credential.id) {
           console.log('🔄 Incremento utilizzo per credenziale:', credential.name);
 
+          // MANTIENI l'incremento per la copia - è un utilizzo effettivo
           this.credentialsService.incrementUsage(credential.id).subscribe({
             next: () => {
               console.log('✅ Utilizzo incrementato con successo');
@@ -250,7 +278,6 @@ export default class CredentialsComponent implements OnInit {
         this.showErrorMessage('Errore durante la copia delle credenziali');
       });
     } else if (password) {
-      // Fallback: usa il parametro password passato
       navigator.clipboard.writeText(password).then(() => {
         this.showSuccessMessage('Password copiata negli appunti');
       }).catch(err => {

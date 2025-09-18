@@ -106,14 +106,24 @@
                                                 <div class="flex justify-between items-center w-full">
                                                     <mat-chip class="text-xs">{{ note.area }}</mat-chip>
                                                     <div class="flex gap-1">
+                                                        <!-- Pulsante per copiare SENZA incrementare utilizzo -->
                                                         <button mat-icon-button matTooltip="Copia contenuto"
                                                             (click)="copyToClipboard(note.freeText || note.description || '', $event)"
-                                                            *ngIf="note.freeText">
+                                                            *ngIf="note.freeText" class="text-blue-500">
                                                             <mat-icon class="text-sm">content_copy</mat-icon>
                                                         </button>
+
+                                                        <!-- Pulsante per visualizzare SENZA incrementare -->
                                                         <button mat-icon-button matTooltip="Visualizza nota"
-                                                            (click)="openNote(note, $event)">
+                                                            (click)="openNote(note, $event)" class="text-gray-600">
                                                             <mat-icon class="text-sm">visibility</mat-icon>
+                                                        </button>
+
+                                                        <!-- Pulsante per "usare" la nota CON incremento utilizzo -->
+                                                        <button mat-icon-button
+                                                            matTooltip="Usa nota (incrementa contatore)"
+                                                            (click)="useNote(note, $event)" class="text-green-600">
+                                                            <mat-icon class="text-sm">play_arrow</mat-icon>
                                                         </button>
                                                     </div>
                                                 </div>
@@ -185,14 +195,24 @@
                                                 <div class="flex justify-between items-center w-full">
                                                     <mat-chip class="text-xs">{{ note.area }}</mat-chip>
                                                     <div class="flex gap-1">
+                                                        <!-- Pulsante per copiare SENZA incrementare utilizzo -->
                                                         <button mat-icon-button matTooltip="Copia contenuto"
                                                             (click)="copyToClipboard(note.freeText || note.description || '', $event)"
-                                                            *ngIf="note.freeText">
+                                                            *ngIf="note.freeText" class="text-blue-500">
                                                             <mat-icon class="text-sm">content_copy</mat-icon>
                                                         </button>
+
+                                                        <!-- Pulsante per visualizzare SENZA incrementare -->
                                                         <button mat-icon-button matTooltip="Visualizza nota"
-                                                            (click)="openNote(note, $event)">
+                                                            (click)="openNote(note, $event)" class="text-gray-600">
                                                             <mat-icon class="text-sm">visibility</mat-icon>
+                                                        </button>
+
+                                                        <!-- Pulsante per "usare" la nota CON incremento utilizzo -->
+                                                        <button mat-icon-button
+                                                            matTooltip="Usa nota (incrementa contatore)"
+                                                            (click)="useNote(note, $event)" class="text-green-600">
+                                                            <mat-icon class="text-sm">play_arrow</mat-icon>
                                                         </button>
                                                     </div>
                                                 </div>
@@ -270,14 +290,24 @@
                                                 <div class="flex justify-between items-center w-full">
                                                     <mat-chip class="text-xs">{{ note.area }}</mat-chip>
                                                     <div class="flex gap-1">
+                                                        <!-- Pulsante per copiare SENZA incrementare utilizzo -->
                                                         <button mat-icon-button matTooltip="Copia contenuto"
                                                             (click)="copyToClipboard(note.freeText || note.description || '', $event)"
-                                                            *ngIf="note.freeText">
+                                                            *ngIf="note.freeText" class="text-blue-500">
                                                             <mat-icon class="text-sm">content_copy</mat-icon>
                                                         </button>
+
+                                                        <!-- Pulsante per visualizzare SENZA incrementare -->
                                                         <button mat-icon-button matTooltip="Visualizza nota"
-                                                            (click)="openNote(note, $event)">
+                                                            (click)="openNote(note, $event)" class="text-gray-600">
                                                             <mat-icon class="text-sm">visibility</mat-icon>
+                                                        </button>
+
+                                                        <!-- Pulsante per "usare" la nota CON incremento utilizzo -->
+                                                        <button mat-icon-button
+                                                            matTooltip="Usa nota (incrementa contatore)"
+                                                            (click)="useNote(note, $event)" class="text-green-600">
+                                                            <mat-icon class="text-sm">play_arrow</mat-icon>
                                                         </button>
                                                     </div>
                                                 </div>

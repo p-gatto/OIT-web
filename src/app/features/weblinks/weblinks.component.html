@@ -71,11 +71,22 @@
                             <mat-card-actions class="pt-2">
                                 <div class="flex justify-between items-center w-full">
                                     <mat-chip class="text-xs">{{ link.area }}</mat-chip>
-                                    <button mat-icon-button matTooltip="Apri link" (click)="openLink(link, $event)">
-                                        <mat-icon>open_in_new</mat-icon>
-                                    </button>
+                                    <div class="flex gap-1">
+                                        <!-- Pulsante per aprire SENZA tracking (semplice visualizzazione) -->
+                                        <button mat-icon-button matTooltip="Visualizza link"
+                                            (click)="openLink(link, $event)" class="text-blue-500">
+                                            <mat-icon>visibility</mat-icon>
+                                        </button>
+
+                                        <!-- Pulsante per aprire CON tracking (uso effettivo) -->
+                                        <button mat-icon-button matTooltip="Apri e conta utilizzo"
+                                            (click)="openLinkWithTracking(link, $event)" class="text-green-600">
+                                            <mat-icon>open_in_new</mat-icon>
+                                        </button>
+                                    </div>
                                 </div>
                             </mat-card-actions>
+
                         </mat-card>
                     </div>
                 </div>
@@ -131,9 +142,19 @@
                             <mat-card-actions class="pt-2">
                                 <div class="flex justify-between items-center w-full">
                                     <mat-chip class="text-xs">{{ link.area }}</mat-chip>
-                                    <button mat-icon-button matTooltip="Apri link" (click)="openLink(link, $event)">
-                                        <mat-icon>open_in_new</mat-icon>
-                                    </button>
+                                    <div class="flex gap-1">
+                                        <!-- Pulsante per aprire SENZA tracking (semplice visualizzazione) -->
+                                        <button mat-icon-button matTooltip="Visualizza link"
+                                            (click)="openLink(link, $event)" class="text-blue-500">
+                                            <mat-icon>visibility</mat-icon>
+                                        </button>
+
+                                        <!-- Pulsante per aprire CON tracking (uso effettivo) -->
+                                        <button mat-icon-button matTooltip="Apri e conta utilizzo"
+                                            (click)="openLinkWithTracking(link, $event)" class="text-green-600">
+                                            <mat-icon>open_in_new</mat-icon>
+                                        </button>
+                                    </div>
                                 </div>
                             </mat-card-actions>
                         </mat-card>
@@ -197,9 +218,19 @@
                             <mat-card-actions class="pt-2">
                                 <div class="flex justify-between items-center w-full">
                                     <mat-chip class="text-xs">{{ link.area }}</mat-chip>
-                                    <button mat-icon-button matTooltip="Apri link" (click)="openLink(link, $event)">
-                                        <mat-icon>open_in_new</mat-icon>
-                                    </button>
+                                    <div class="flex gap-1">
+                                        <!-- Pulsante per aprire SENZA tracking (semplice visualizzazione) -->
+                                        <button mat-icon-button matTooltip="Visualizza link"
+                                            (click)="openLink(link, $event)" class="text-blue-500">
+                                            <mat-icon>visibility</mat-icon>
+                                        </button>
+
+                                        <!-- Pulsante per aprire CON tracking (uso effettivo) -->
+                                        <button mat-icon-button matTooltip="Apri e conta utilizzo"
+                                            (click)="openLinkWithTracking(link, $event)" class="text-green-600">
+                                            <mat-icon>open_in_new</mat-icon>
+                                        </button>
+                                    </div>
                                 </div>
                             </mat-card-actions>
                         </mat-card>

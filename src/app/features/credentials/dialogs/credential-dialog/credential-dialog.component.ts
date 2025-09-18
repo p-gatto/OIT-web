@@ -37,6 +37,8 @@ export class CredentialDialogComponent {
 
   credentialForm: FormGroup;
   isEditMode: boolean;
+  readOnlyMode: boolean = false;
+
   hidePassword = true;
   hidePasswordFirst = true;
   hidePasswordAdmin = true;
@@ -46,9 +48,10 @@ export class CredentialDialogComponent {
   constructor(
     private fb: FormBuilder,
     public dialogRef: MatDialogRef<CredentialDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: Credential
+    @Inject(MAT_DIALOG_DATA) public data: Credential & { readOnly?: boolean }
   ) {
     this.isEditMode = !!data.id;
+    this.readOnlyMode = data.readOnly || false;
 
     this.credentialForm = this.fb.group({
       // Campi base
@@ -114,9 +117,34 @@ export class CredentialDialogComponent {
       active: [data.active !== undefined ? data.active : true],
       expired: [data.expired !== undefined ? data.expired : false]
     });
+
+    if (this.readOnlyMode) {
+      this.credentialForm.disable();
+    }
+  }
+
+  copyCredentialData(): void {
+    const data = this.credentialForm.value;
+    const credentialText = `Nome: ${data.name}\nUsername: ${data.username}\nPassword: ${data.password}\nEmail: ${data.email || 'N/A'}\nURL: ${data.url || 'N/A'}`;
+
+    navigator.clipboard.writeText(credentialText).then(() => {
+      console.log('Dati credenziale copiati');
+      // Qui potresti mostrare un toast/snackbar di conferma
+    });
+  }
+
+  switchToEditMode(): void {
+    this.readOnlyMode = false;
+    this.credentialForm.enable();
   }
 
   onSubmit(): void {
+
+    if (this.readOnlyMode) {
+      this.onCancel();
+      return;
+    }
+
     if (this.credentialForm.valid) {
       const formValue = { ...this.credentialForm.value };
 
