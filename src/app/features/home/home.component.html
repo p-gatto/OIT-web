@@ -1,18 +1,5 @@
 <!-- src/app/features/home/home.component.html -->
-<!-- Header della home page -->
 <div class="home-container">
-    <!-- Hero Section -->
-    <!-- <div class="hero-section">
-        <div class="hero-content">
-            <h1 class="hero-title">
-                Benvenuto in <span class="highlight">OIT Web</span>
-            </h1>
-            <p class="hero-subtitle">
-                La tua piattaforma centralizzata per gestire note tecniche, web links e credenziali
-            </p>
-        </div>
-    </div> -->
-
     <!-- Loading State -->
     <div *ngIf="loading" class="loading-container">
         <mat-spinner diameter="50"></mat-spinner>
@@ -36,7 +23,7 @@
                 <ng-template matTabContent>
                     <app-item-section [config]="credentialsConfig" [mostUsedItems]="credentialsData"
                         [recentItems]="credentialsRecentData" (navigate)="onCredentialsNavigate()"
-                        (itemClick)="onCredentialItemClick($event)" (copyClick)="onCopyClick($event)"
+                        (itemClick)="onCredentialItemClick($event)" (copyClick)="onCopyClick($event.text, $event.item)"
                         (actionClick)="onCredentialActionClick($event)">
                     </app-item-section>
                 </ng-template>
@@ -52,7 +39,7 @@
                 <ng-template matTabContent>
                     <app-item-section [config]="weblinksConfig" [mostUsedItems]="weblinksData"
                         [recentItems]="weblinksRecentData" (navigate)="onWeblinksNavigate()"
-                        (itemClick)="onWeblinkItemClick($event)" (copyClick)="onCopyClick($event)"
+                        (itemClick)="onWeblinkItemClick($event)" (copyClick)="onCopyClick($event.text, $event.item)"
                         (actionClick)="onWeblinkActionClick($event)">
                     </app-item-section>
                 </ng-template>
@@ -68,7 +55,7 @@
                 <ng-template matTabContent>
                     <app-item-section [config]="notesConfig" [mostUsedItems]="notesData" [recentItems]="notesRecentData"
                         (navigate)="onNotesNavigate()" (itemClick)="onNoteItemClick($event)"
-                        (copyClick)="onCopyClick($event)" (actionClick)="onNoteActionClick($event)">
+                        (copyClick)="onCopyClick($event.text, $event.item)" (actionClick)="onNoteActionClick($event)">
                     </app-item-section>
                 </ng-template>
             </mat-tab>

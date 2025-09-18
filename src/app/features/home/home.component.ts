@@ -311,27 +311,45 @@ export default class HomeComponent {
     this.router.navigate(['/notes']);
   }
 
-  // Gestione click sugli item
+  // GESTIONE CLICK SUGLI ITEM - SENZA INCREMENTO
   onCredentialItemClick(item: ItemCard): void {
-    /* this.credentialsService.incrementUsage(item.id).subscribe({
+    console.log('Visualizzazione credenziale:', item.name);
+    // Non incrementiamo l'utilizzo per la semplice visualizzazione
+  }
+
+  onWeblinkItemClick(item: ItemCard): void {
+    console.log('Visualizzazione weblink:', item.name);
+    // Non incrementiamo l'utilizzo per la semplice visualizzazione
+  }
+
+  onNoteItemClick(item: ItemCard): void {
+    console.log('Visualizzazione nota:', item.name);
+    // Non incrementiamo l'utilizzo per la semplice visualizzazione
+  }
+
+  // GESTIONE AZIONI SPECIFICHE - CON INCREMENTO
+  onCredentialActionClick(item: ItemCard): void {
+    // Incrementa l'utilizzo quando si apre effettivamente la credenziale
+    this.credentialsService.incrementUsage(item.id).subscribe({
       next: () => {
-        console.log('Utilizzo credenziale incrementato');
+        console.log('✅ Utilizzo credenziale incrementato:', item.name);
         this.refreshCredentialsData();
       },
-      error: (error) => console.error('Errore incremento utilizzo:', error)
-    }); */
+      error: (error) => console.error('❌ Errore incremento utilizzo:', error)
+    });
 
     console.log('Apertura credenziale:', item.name);
   }
 
-  onWeblinkItemClick(item: ItemCard): void {
-    /* this.webLinksService.incrementUsage(item.id).subscribe({
+  onWeblinkActionClick(item: ItemCard): void {
+    // Incrementa l'utilizzo quando si apre effettivamente il link
+    this.webLinksService.incrementUsage(item.id).subscribe({
       next: () => {
-        console.log('Utilizzo weblink incrementato');
+        console.log('✅ Utilizzo weblink incrementato:', item.name);
         this.refreshWeblinksData();
       },
-      error: (error) => console.error('Errore incremento utilizzo:', error)
-    }); */
+      error: (error) => console.error('❌ Errore incremento utilizzo:', error)
+    });
 
     if (item.url) {
       window.open(item.url, '_blank');
@@ -339,70 +357,46 @@ export default class HomeComponent {
     console.log('Apertura weblink:', item.name);
   }
 
-  onNoteItemClick(item: ItemCard): void {
-    /* this.notesService.incrementUsage(item.id).subscribe({
+  onNoteActionClick(item: ItemCard): void {
+    // Incrementa l'utilizzo quando si usa effettivamente la nota
+    this.notesService.incrementUsage(item.id).subscribe({
       next: () => {
-        console.log('Utilizzo nota incrementato');
+        console.log('✅ Utilizzo nota incrementato:', item.name);
         this.refreshNotesData();
       },
-      error: (error) => console.error('Errore incremento utilizzo:', error)
-    }); */
+      error: (error) => console.error('❌ Errore incremento utilizzo:', error)
+    });
 
     console.log('Apertura nota:', item.name);
   }
 
-
-  onCredentialCopyAction(item: ItemCard): void {
-    // Incrementa SOLO quando l'utente copia effettivamente
-    this.credentialsService.incrementUsage(item.id).subscribe({
-      next: () => {
-        console.log('✅ Utilizzo incrementato per copia:', item.name);
-        this.refreshCredentialsData();
-      },
-      error: (error) => console.error('❌ Errore incremento utilizzo:', error)
-    });
-  }
-
-  onWeblinkOpenAction(item: ItemCard): void {
-    // Incrementa SOLO quando l'utente clicca specificamente per aprire il link
-    this.webLinksService.incrementUsage(item.id).subscribe({
-      next: () => {
-        console.log('✅ Utilizzo incrementato per apertura:', item.name);
-        this.refreshWeblinksData();
-      },
-      error: (error) => console.error('❌ Errore incremento utilizzo:', error)
-    });
-
-    if (item.url) {
-      window.open(item.url, '_blank');
-    }
-  }
-
-  onNoteCopyAction(item: ItemCard): void {
-    // Incrementa SOLO quando l'utente copia il contenuto
-    this.notesService.incrementUsage(item.id).subscribe({
-      next: () => {
-        console.log('✅ Utilizzo incrementato per copia:', item.name);
-        this.refreshNotesData();
-      },
-      error: (error) => console.error('❌ Errore incremento utilizzo:', error)
-    });
-  }
-
+  // GESTIONE COPIA - CON INCREMENTO
   onCopyClick(text: string, item?: ItemCard): void {
     if (text) {
       navigator.clipboard.writeText(text).then(() => {
         this.showSnackBar('Contenuto copiato negli appunti', 'success');
 
-        // Incrementa l'utilizzo solo se è stata passata un'item e solo per azioni di copia
+        // Incrementa l'utilizzo SOLO quando si copia effettivamente
         if (item) {
-          // Determina il tipo di item e chiama il metodo appropriato
+          // Determina il tipo di item e incrementa l'utilizzo
           if (item.username && item.password) {
             // È una credenziale
-            this.onCredentialCopyAction(item);
+            this.credentialsService.incrementUsage(item.id).subscribe({
+              next: () => {
+                console.log('✅ Utilizzo credenziale incrementato per copia:', item.name);
+                this.refreshCredentialsData();
+              },
+              error: (error) => console.error('❌ Errore incremento utilizzo:', error)
+            });
           } else if (item.freeText) {
             // È una nota
-            this.onNoteCopyAction(item);
+            this.notesService.incrementUsage(item.id).subscribe({
+              next: () => {
+                console.log('✅ Utilizzo nota incrementato per copia:', item.name);
+                this.refreshNotesData();
+              },
+              error: (error) => console.error('❌ Errore incremento utilizzo:', error)
+            });
           }
           // Per i weblinks, l'incremento avviene solo sull'apertura del link
         }
@@ -413,41 +407,6 @@ export default class HomeComponent {
     } else {
       this.showSnackBar('Nessun contenuto da copiare', 'info');
     }
-  }
-
-  // MODIFICA 4: Mantieni il metodo esistente ma modificalo per non incrementare automaticamente
-  onCredentialCopy(credential: any): void {
-    const credentialText = `Username: ${credential.username}\nPassword: ${credential.password}`;
-
-    navigator.clipboard.writeText(credentialText).then(() => {
-      this.showSnackBar('Username e Password copiati negli appunti', 'success');
-
-      // ORA incrementa l'utilizzo perché è un'azione specifica di copia
-      this.credentialsService.incrementUsage(credential.id).subscribe({
-        next: () => {
-          console.log('✅ Utilizzo incrementato per:', credential.name);
-          this.refreshCredentialsData();
-        },
-        error: (error) => console.error('❌ Errore incremento utilizzo:', error)
-      });
-    }).catch(err => {
-      console.error('Errore nella copia delle credenziali:', err);
-      this.showSnackBar('Errore durante la copia', 'error');
-    });
-
-  }
-
-  // Gestione action click (stesso comportamento del click principale)
-  onCredentialActionClick(item: ItemCard): void {
-    this.onCredentialItemClick(item);
-  }
-
-  onWeblinkActionClick(item: ItemCard): void {
-    this.onWeblinkItemClick(item);
-  }
-
-  onNoteActionClick(item: ItemCard): void {
-    this.onNoteItemClick(item);
   }
 
   /**

@@ -31,20 +31,9 @@ export class ItemCardComponent {
   @Input() ranking?: number;
   @Input() showFavoriteAnimation = false;
 
-  @Output() itemView = new EventEmitter<ItemCard>();  // Solo visualizzazione
-  @Output() itemUse = new EventEmitter<ItemCard>();   // Uso effettivo
-
   @Output() itemClick = new EventEmitter<ItemCard>();
   @Output() copyClick = new EventEmitter<string>();
   @Output() actionClick = new EventEmitter<ItemCard>();
-
-  onItemView(): void {
-    this.itemView.emit(this.item);
-  }
-
-  onItemUse(): void {
-    this.itemUse.emit(this.item);
-  }
 
   getDisplayTitle(): string {
     switch (this.cardType) {
@@ -90,17 +79,18 @@ export class ItemCardComponent {
   getActionTooltip(): string {
     switch (this.cardType) {
       case 'weblink':
-        return 'Apri link';
+        return 'Apri link (conta utilizzo)';
       case 'credential':
-        return 'Visualizza credenziale';
+        return 'Visualizza credenziale (conta utilizzo)';
       case 'note':
-        return 'Visualizza nota';
+        return 'Visualizza nota (conta utilizzo)';
       default:
         return 'Visualizza';
     }
   }
 
   onItemClick(): void {
+    // Questo è solo per la visualizzazione senza incremento
     this.itemClick.emit(this.item);
   }
 
@@ -111,22 +101,20 @@ export class ItemCardComponent {
     if (this.cardType === 'note' && this.item.freeText) {
       textToCopy = this.item.freeText;
     } else if (this.cardType === 'credential') {
-      // PROBLEMA: Il modello ItemCard non ha il campo password!
-      // Dobbiamo modificare l'ItemCard model per includere la password
-      if (this.item.username) {
-        // Per ora, usiamo un campo password se disponibile nell'ItemCard
-        const password = (this.item as any).password || 'Password non disponibile';
-        textToCopy = `Username: ${this.item.username}\nPassword: ${password}`;
+      if (this.item.username && this.item.password) {
+        textToCopy = `Username: ${this.item.username}\nPassword: ${this.item.password}`;
       } else {
         textToCopy = this.item.description || this.item.name;
       }
     }
 
+    // Emetti il testo da copiare - il parent gestirà la copia e l'incremento
     this.copyClick.emit(textToCopy);
   }
 
   onActionClick(event: Event): void {
     event.stopPropagation();
+    // Questo dovrebbe incrementare l'utilizzo
     this.actionClick.emit(this.item);
   }
 

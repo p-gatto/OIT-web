@@ -27,21 +27,10 @@ export class ItemSectionComponent {
   @Input() mostUsedItems: ItemCard[] = [];
   @Input() recentItems: ItemCard[] = [];
 
-  @Output() itemView = new EventEmitter<ItemCard>(); // Per sola visualizzazione
-  @Output() itemUse = new EventEmitter<ItemCard>();  // Per uso effettivo con incremento
-
   @Output() navigate = new EventEmitter<void>();
   @Output() itemClick = new EventEmitter<ItemCard>();
-  @Output() copyClick = new EventEmitter<string>();
+  @Output() copyClick = new EventEmitter<{ text: string, item: ItemCard }>();
   @Output() actionClick = new EventEmitter<ItemCard>();
-
-  onItemView(item: ItemCard): void {
-    this.itemView.emit(item);
-  }
-
-  onItemUse(item: ItemCard): void {
-    this.itemUse.emit(item);
-  }
 
   onNavigate(): void {
     this.navigate.emit();
@@ -51,8 +40,10 @@ export class ItemSectionComponent {
     this.itemClick.emit(item);
   }
 
-  onCopyClick(text: string): void {
-    this.copyClick.emit(text);
+  onCopyClick(text: string, item?: ItemCard): void {
+    if (item) {
+      this.copyClick.emit({ text, item });
+    }
   }
 
   onActionClick(item: ItemCard): void {
